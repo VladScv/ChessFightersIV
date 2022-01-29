@@ -243,7 +243,7 @@ function menuCreate() {
 	var whiteTeam_btn = this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn').setOrigin(0);
 
 	blackTeam_btn.setInteractive();
-		blackTeam_btn.on('pointerup', function () {
+		blackTeam_btn.on('pointerdown', function () {
 			game.playerColor = BLACK;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
 			game.scene.sleep('menu');
@@ -252,12 +252,12 @@ function menuCreate() {
 	blackTeam_btn.on('pointerout', () => { blackTeam_btn= this.add.image(0,  0, 'blackTeam_btn').setOrigin(0)});
 
 	whiteTeam_btn.setInteractive();
-	whiteTeam_btn.on('click', function () {
-		game.playerColor = WHITE;
-		game.scene.run('game');//run works as "resume" or "start" depending on current scene state
-		game.scene.sleep('menu');
-	},this);
-	whiteTeam_btn.on('pointerover', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn_on').setOrigin(0) });
+		whiteTeam_btn.on('pointerdown', function () {
+			game.playerColor = WHITE;
+			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
+			game.scene.sleep('menu');
+		},this);
+	whiteTeam_btn.on('pointerover', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn_on').setOrigin(0)});
 	whiteTeam_btn.on('pointerout', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn').setOrigin(0)});
 }
 function menuUpdate() {
@@ -276,10 +276,13 @@ function menuUpdate() {
 		 ██████  ██   ██ ██      ██ ███████     ███████  ██████ ███████ ██   ████ ███████
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 
+this.movingCamera=false;
 function preload() {
 	this.gameState ='SELECTFIGHTER';
 	var background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
-	movingCamera=true;
+	if(game.playerColor===WHITE){background.flipX=true;}
+	this.input.keyboard.on('keydown-SPACE', function() { movingCamera = true;},this);
+	this.input.keyboard.on('keyup-SPACE', function() { movingCamera = false;},this);
 }
 
 function create() {
@@ -287,7 +290,7 @@ function create() {
 	var titleText = this.make.text({
 		x: this.cameras.main.width / 2,
 		y: 50,
-		text: 'Select a Fighter!',
+		text: 'Press SPACE to move camera',
 		style: {
 			font: '28px monospace',
 			fill: '#ffffff'
@@ -302,7 +305,7 @@ function create() {
 
 function update() {
 	if(movingCamera){
-		moveMainCamera_to(this.cameras.main,1024,1);
+		moveMainCamera_to(this.cameras.main,1800,1);
 	}
 
 }
