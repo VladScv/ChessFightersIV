@@ -381,16 +381,23 @@ function create() {
 		buttons[i].setInteractive();
 		buttons[i].on('pointerdown', function() { // cambiar por un carrusel con los cursores
 			activateFighter(true,buttons.indexOf(this));
+			buttons.forEach(function(button) {
+				if(button!=null){
+					button.interactive = false;
+				}
+			});
 			console.log(buttons.indexOf(this));
 		})
 		
 		buttons[i].on('pointerover', function() { // cambiar por un carrusel con los cursores
-			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('attack1',true);
-			console.log(buttons.indexOf(this));
+			try {
+				gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('attack1',true);
+			}catch(e){};
 		})
-		buttons[i].on('pointerout', function() { // cambiar por un carrusel con los cursores
-			
-			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('idle',true);
+		buttons[i].on('pointerout', function() { // cambiar por un carrusel con los cursores	
+			try {
+				gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('idle',true);
+			}catch(e){};
 		})
 		gameScene.playerTeam.fighters[i]=fighter;
 	 }
@@ -495,6 +502,7 @@ function activateFighter(isPlayer,index){
 	if(isPlayer){
 		gameScene.currentFighter= gameScene.playerTeam.fighters[index];
 		delete gameScene.playerTeam.fighters[index];
+		delete buttons[index];
 		gameScene.gameState='FIGHT';
 
 
