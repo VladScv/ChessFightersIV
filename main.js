@@ -41,7 +41,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 */
 //CONST
 
-const ASSETSLIST= [];
 
 
  //SCENE CONFIGURATIONS:
@@ -77,12 +76,17 @@ var gameScene = {
 
 var config = {
 	type: Phaser.AUTO,
-	width: 800,
-	height: 600,
+	scale: {
+        mode: Phaser.Scale.FIT, 
+		autoCenter: Phaser.Scale.BOTH,
+        width: 1200,
+        height: 740
+    },
 	physics: {
 		default: 'arcade',
 		arcade: {
-			gravity: { y: 200 }
+			gravity: { y: 200 },
+			debug: true
 		}
 	},
 	scene: [loaderScene, menuScene, gameScene]
@@ -110,9 +114,16 @@ function bootLoader() {
 	this.load.image('space', 'assets/space3.png');
 	this.load.image('logo', 'phaser3-logo.png');
 	this.load.image('redp', 'assets/redp.png');
+	this.load.spritesheet('PAWN_walk','assets/pawn_walk.png',{ frameWidth: 341, frameHeight: 341 });
+	this.load.image('bg','assets/black_bg.png');
+
+	this.load.image('blackTeam_btn','assets/selectTeam_black.png');
+	this.load.image('blackTeam_btn_on','assets/selectTeam_black_on.png');
+	this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
+	this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
 	//-----------------------------------------------------------------------loading screen
 	//LOAD SECUENTIALIMAGES
-	for (var i = 0; i < 500; i++) {
+	for (var i = 0; i < 50; i++) {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
@@ -123,6 +134,7 @@ function bootLoader() {
 	var progressBar = this.add.graphics();
 	var width = this.cameras.main.width;
 	var height = this.cameras.main.height;
+
 	var loadingText = this.make.text({
 		x: width / 2,
 		y: height / 2 - 50,
@@ -133,21 +145,47 @@ function bootLoader() {
 	}
 	});
 	loadingText.setOrigin(0.5, 0.5);
-	
+
+	var percentText = this.make.text({
+		x: width / 2,
+		y: height / 2 - 5,
+		text: '0%',
+		style: {
+			font: '18px monospace',
+			fill: '#ffffff'
+		}
+	});
+	percentText.setOrigin(0.5, 0.5);
+
+	var fileText = this.make.text({
+		x: width / 2,
+		y: height / 2 + 50,
+		text: 'please wait... ',
+		style: {
+			font: '14px monospace',
+			fill: '#ffffff'
+		}
+	});
+	fileText.setOrigin(0.5, 0.5);
 	
 	this.load.on('progress', function (value) {
 		progressBar.clear();
 		progressBar.fillStyle(0xffffff, 1);
 		progressBar.fillRect(250, 280, 300 * value, 30);
+		percentText.setText(parseInt(value * 100) + '%');
 	});
 				
 	this.load.on('fileprogress', function (file) {
-		console.log(file.src);
+		fileText.setText('loading file:'+ file.src);
 	});
+
 	this.load.on('complete', function () {
 		//SHOW SPLASH SCREEN
 		progressBar.destroy();
 		progressBox.destroy();
+		loadingText.destroy();
+		percentText.destroy();
+		fileText.destroy();
 		
 	});
 }
@@ -156,9 +194,7 @@ function bootLoader() {
 //-------------------------------------------------------------------------- SPLASH SCREEN
 function bootCreate() {
 	var loadImage = this.add.image(0, 0, 'space').setOrigin(0); //Background
-	
 	var particles = this.add.particles('redp'); //particles stuff
-
 	var emitter = particles.createEmitter({
 		speed: 100,
 		scale: { start: 1, end: 0 },
@@ -196,29 +232,33 @@ function bootCreate() {
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 function menuLoad() {
 	//-------------------------------------------------------------load more stuff
-	this.add.image(400, 300, 'sky');
-	this.load.image('ground', 'assets/platform.png');
-	this.load.image('star', 'assets/star.png');
-	this.load.image('bomb', 'assets/bomb.png');
-	this.load.spritesheet('dude',
-		'assets/dude.png',
-		{ frameWidth: 32, frameHeight: 48 }
-	);
+	this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
 
-    this.load.tilemapTiledJSON('map', 'tiled/Tiles/simpleMap.json');
 }
 function menuCreate() {
 	//--------------------------------------------------------------construct menu
 	txt = 'START!';
 //MENU WILL BE THE TEAM SELECTION SCREEN
-	var startButton = this.add.text(120, 250, txt, { fontSize: '64px', fill: '#ffffff' });
-	startButton.setInteractive();
-		startButton.on('pointerup', function () {
+	var blackTeam_btn = this.add.image(0,  0, 'blackTeam_btn').setOrigin(0);
+	var whiteTeam_btn = this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn').setOrigin(0);
+
+	blackTeam_btn.setInteractive();
+		blackTeam_btn.on('pointerup', function () {
+			game.playerColor = BLACK;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
 			game.scene.sleep('menu');
 		},this);
-	startButton.on('pointerover', () => { startButton.text="Goooooo!"; });
-	startButton.on('pointerout', () => { startButton.text = txt });
+	blackTeam_btn.on('pointerover', () => { blackTeam_btn= this.add.image(0,  0, 'blackTeam_btn_on').setOrigin(0)});
+	blackTeam_btn.on('pointerout', () => { blackTeam_btn= this.add.image(0,  0, 'blackTeam_btn').setOrigin(0)});
+
+	whiteTeam_btn.setInteractive();
+	whiteTeam_btn.on('click', function () {
+		game.playerColor = WHITE;
+		game.scene.run('game');//run works as "resume" or "start" depending on current scene state
+		game.scene.sleep('menu');
+	},this);
+	whiteTeam_btn.on('pointerover', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn_on').setOrigin(0) });
+	whiteTeam_btn.on('pointerout', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn').setOrigin(0)});
 }
 function menuUpdate() {
 
@@ -237,104 +277,65 @@ function menuUpdate() {
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 
 function preload() {
-	//this.children.removeAll();
+	this.gameState ='SELECTFIGHTER';
+	var background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
+	movingCamera=true;
 }
 
 function create() {
 	
-
-	//CHARACTER
-	/*player = this.physics.add.sprite(100, 450, 'dude');
-
-	player.setBounce(0.1);
-	player.setCollideWorldBounds(true);
-	player.body.setGravityY(300)
-	this.physics.add.collider(player, platforms);
+	var titleText = this.make.text({
+		x: this.cameras.main.width / 2,
+		y: 50,
+		text: 'Select a Fighter!',
+		style: {
+			font: '28px monospace',
+			fill: '#ffffff'
+	}
+	});
 	
-	//CREATE ANIMATIONS
-	this.anims.create({
-		key: 'left',
-		frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
-		frameRate: 10,
-		repeat: -1
-	});
-
-	this.anims.create({
-		key: 'turn',
-		frames: [{ key: 'dude', frame: 4 }],
-		frameRate: 20
-	});
-
-	this.anims.create({
-		key: 'right',
-		frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-		frameRate: 10,
-		repeat: -1
-	});
-	*/
-
-	//CURSORS saves the cursor keys to check them
-
+	titleText.setOrigin(0.5, 0.5);
 	cursors = this.input.keyboard.createCursorKeys();
-
 	keyPause = this.input.keyboard.addKey('P');  // Get key P object
 
-
-
-	//STARS with auto replicant method
-
-	stars = this.physics.add.group({
-		key: 'star',
-		repeat: 11,
-		setXY: { x: 12, y: 0, stepX: 70 }
-	});
-
-	stars.children.iterate(function (child) {
-
-		child.setBounceY(Phaser.Math.FloatBetween(0.4, 1));
-
-	});
-	this.physics.add.collider(stars, platforms);
-	this.physics.add.overlap(player, stars, collectStar, null, this);
-
-	//SCORE
-	scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-	this.add.text(16, 50, 'P: pause', { fontSize: '32px', fill: '#000' });
-	var score = 0;
-	var scoreText;
-
-	function collectStar(player, star) {
-		star.disableBody(true, true);
-		score += 10;
-		scoreText.setText('Score: ' + score);
-
-	}
 }
 
 function update() {
+	if(movingCamera){
+		moveMainCamera_to(this.cameras.main,1024,1);
+	}
 
-		if (cursors.left.isDown) {
-			player.setVelocityX(-160);
-			player.anims.play('left', true);
-		}
-		else if (cursors.right.isDown) {
-			player.setVelocityX(160);
-			player.anims.play('right', true);
-		}
-		else {
-			player.setVelocityX(0);
-			player.anims.play('turn');
-		}
+}
 
-		if (cursors.up.isDown && player.body.touching.down) {
-			player.setVelocityY(-630);
-		}
+
+
+function processInput(){ 
+	if (cursors.left.isDown) {
+		player.setVelocityX(-160);
+		player.anims.play('left', true);
+	}
+	else if (cursors.right.isDown) {
+		player.setVelocityX(160);
+		player.anims.play('right', true);
+	}
+	else {
+		player.setVelocityX(0);
+		player.anims.play('turn');
+	}
+
+	if (cursors.up.isDown && player.body.touching.down) {
+		player.setVelocityY(-630);
+	}
 	if (keyPause.isDown) {
 		this.scene.sleep();
 		this.scene.run('menu');
 		txt='Continue...';
+
 	}
-
-
 }
 
+function moveMainCamera_to(camera,xPoint,speed){ 	
+	if (camera.midPoint.x<xPoint){
+		camera.scrollX+=10;
+	}else{movingCamera=false;}
+}
