@@ -123,7 +123,7 @@ function bootLoader() {
 	this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
 	//-----------------------------------------------------------------------loading screen
 	//LOAD SECUENTIALIMAGES
-	for (var i = 0; i < 5000; i++) {
+	for (var i = 0; i < 50; i++) {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
