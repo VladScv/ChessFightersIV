@@ -123,21 +123,21 @@ function bootLoader() {
 	this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
 	//-----------------------------------------------------------------------loading screen
 	//LOAD SECUENTIALIMAGES
-	for (var i = 0; i < 50; i++) {
+	for (var i = 0; i < 5000; i++) {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
 	//Create loading bar boxes
 	let progressBox = this.add.graphics();
 	progressBox.fillStyle(0x222222, 0.8);
-	progressBox.fillRect(240, 270, 320, 50);
+	progressBox.fillRect(440, 320, 320, 50);
 	var progressBar = this.add.graphics();
 	var width = this.cameras.main.width;
 	var height = this.cameras.main.height;
 
 	var loadingText = this.make.text({
 		x: width / 2,
-		y: height / 2 - 50,
+		y: height / 2 - 80,
 		text: 'Loading...',
 		style: {
 			font: '20px monospace',
@@ -148,7 +148,7 @@ function bootLoader() {
 
 	var percentText = this.make.text({
 		x: width / 2,
-		y: height / 2 - 5,
+		y: height / 2 + 10,
 		text: '0%',
 		style: {
 			font: '18px monospace',
@@ -159,7 +159,7 @@ function bootLoader() {
 
 	var fileText = this.make.text({
 		x: width / 2,
-		y: height / 2 + 50,
+		y: height / 2 + 80,
 		text: 'please wait... ',
 		style: {
 			font: '14px monospace',
@@ -171,7 +171,7 @@ function bootLoader() {
 	this.load.on('progress', function (value) {
 		progressBar.clear();
 		progressBar.fillStyle(0xffffff, 1);
-		progressBar.fillRect(250, 280, 300 * value, 30);
+		progressBar.fillRect(450, 330, 300 * value, 30);
 		percentText.setText(parseInt(value * 100) + '%');
 	});
 				
@@ -202,8 +202,16 @@ function bootCreate() {
 	});
 
 	var logo = this.physics.add.image(400, 100, 'logo');
-
-	this.add.text(250,500, 'click to start', { fontSize: '32px', fill: '#ffffff' });
+	var clickText = this.make.text({
+		x: 1200 / 2,
+		y: 740-740 / 5 ,
+		text: 'click to start',
+		style: {
+			font: '26px monospace',
+			fill: '#ffffff'
+		}
+	});
+	clickText.setOrigin(0.5, 0.5);
 
 	logo.setVelocity(100, 200);
 	logo.setBounce(1, 1);
@@ -339,6 +347,8 @@ function processInput(){
 
 function moveMainCamera_to(camera,xPoint,speed){ 	
 	if (camera.midPoint.x<xPoint){
-		camera.scrollX+=10;
-	}else{movingCamera=false;}
+		camera.scrollX+=speed;
+	}else{
+		movingCamera=false;
+	}
 }
