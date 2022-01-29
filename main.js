@@ -76,6 +76,10 @@ var gameScene = {
 	inputKeys:[],
 	selectFighter_txt:'',
 	currentFighter:null,
+	fightingQueen:false,
+	gameStarted: false,
+	playerWins:false, 
+	fixCamPoint:800,
 	preload: preload,
 	create: create,
 	update: update
@@ -306,7 +310,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 function preload() {
 	this.gameState ='SELECTFIGHTER';
 	gameScene.background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
-	if(game.playerColor===WHITE){background.flipX=true;}
+	if(gameScene.playerColor===WHITE){gameScene.background.flipX=true;}
 	this.input.keyboard.on('keydown-SPACE', function() { gameScene.movingCamera = true;},this);
 	this.input.keyboard.on('keyup-SPACE', function() { gameScene.movingCamera = false;},this);
 }
@@ -397,8 +401,32 @@ function create() {
 }
 
 function update() {
-	if(gameScene.movingCamera){
-		moveMainCamera_to(this.cameras.main,1800,10);
+	switch (gameScene.gameState){
+		case 'SELECTFIGHTER':
+			if(gameScene.currentFighter!=null){
+				gameScene.currentFighter= null;
+				goTo_selection();
+			}
+			break;
+		case 'FIGHTQUEEN':
+			if(gameScene.fightingQueen===false){
+				gameScene.fightingQueen=true;
+				goTo_queen();
+			}
+		case 'FIGHT':
+			if(gameScene.gameStarted){
+				updateFight();
+			}else{ 
+				if(gameScene.movingCamera){
+					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,10);
+				}
+				fightCountdown();
+			}
+			break;
+		case 'GAMEOVER':
+			gameOver(gameScene.playerWins);
+			break;
+		default: break;
 	}
 	processInput();
 }
@@ -454,8 +482,11 @@ function activateFighter(isPlayer,index){
 	if(isPlayer){
 		gameScene.currentFighter= gameScene.playerTeam.fighters[index];
 		delete gameScene.playerTeam.fighters[index];
+		gameScene.gameState='FIGHT';
+
+
 	}else{
-		gameScene.currentFighter= gameScene.iaTeam.fighters[index];
+		gameScene.iaFighter= gameScene.iaTeam.fighters[index];
 		delete gameScene.iaTeam.fighters[index];
 	}
 
@@ -509,3 +540,9 @@ function moveMainCamera_to(camera,xPoint,speed){
 		movingCamera=false;
 	}
 }
+function goTo_selection(){gameScene.fixCamPoint=600;}
+function goTo_queen(){gameScene.fixCamPoint=1600;}
+function goTo_fight(){gameScene.fixCamPoint=1200;}
+function fightCountdown(){
+
+};
