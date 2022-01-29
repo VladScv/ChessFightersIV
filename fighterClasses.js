@@ -6,13 +6,28 @@ const gameState = ['SELECTFIGHTER','FIGHT','FIGHTQUEEN','GAMEOVER'];
 const fighterType=['QUEEN','ROOK','BISHOP','KNIGHT','PAWN'];
 //fighterType.indexOf('QUEEN');
 
+
 class Fighter { 
     constructor(type,team,gameScene,color) {
         this.type = type;
         this.team = team;
-        this.sprite = gameScene.physics.add.sprite(100,450,type+"_"+color)
+        this.sprite =this.addImage()
         this.speed = 1;
-        this.sprite.setSize()
+
+        switch(type) {
+            case "QUEEN":
+                break;
+            case "ROOK":
+                break;
+            case "BISHOP": 
+                break;
+            case "KNIGHT":
+                break;
+            case "PAWN":
+            default: 
+                break;
+        }
+        
     }
 
 }

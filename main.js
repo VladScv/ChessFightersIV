@@ -56,15 +56,25 @@ var menuScene = {
 	key: 'menu',
 	active: false,
 	visible: false,
+	
 	preload: menuLoad,
 	create: menuCreate,
 	update: menuUpdate
 };
 
+
 var gameScene = {
 	key: 'game',
 	active: false,  //This makes scenes be unactive until we activate them
 	visible: false,
+	movingCamera:false,
+	playerTeam:null,
+	iaTeam:null,
+	gameState: 'SELECTFIGHTER',
+	background:null,
+	playerColor:null,
+	inputKeys:[],
+	selectFighter_txt:'',
 	preload: preload,
 	create: create,
 	update: update
@@ -245,14 +255,13 @@ function menuLoad() {
 }
 function menuCreate() {
 	//--------------------------------------------------------------construct menu
-	txt = 'START!';
 //MENU WILL BE THE TEAM SELECTION SCREEN
 	var blackTeam_btn = this.add.image(0,  0, 'blackTeam_btn').setOrigin(0);
 	var whiteTeam_btn = this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn').setOrigin(0);
 
 	blackTeam_btn.setInteractive();
 		blackTeam_btn.on('pointerdown', function () {
-			game.playerColor = BLACK;
+			gameScene.playerColor = BLACK;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
 			game.scene.sleep('menu');
 		},this);
@@ -261,7 +270,7 @@ function menuCreate() {
 
 	whiteTeam_btn.setInteractive();
 		whiteTeam_btn.on('pointerdown', function () {
-			game.playerColor = WHITE;
+			gameScene.playerColor = WHITE;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
 			game.scene.sleep('menu');
 		},this);
@@ -284,63 +293,90 @@ function menuUpdate() {
 		 ██████  ██   ██ ██      ██ ███████     ███████  ██████ ███████ ██   ████ ███████
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 
-this.movingCamera=false;
+
+
 function preload() {
 	this.gameState ='SELECTFIGHTER';
 	var background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
 	if(game.playerColor===WHITE){background.flipX=true;}
-	this.input.keyboard.on('keydown-SPACE', function() { movingCamera = true;},this);
-	this.input.keyboard.on('keyup-SPACE', function() { movingCamera = false;},this);
+	this.input.keyboard.on('keydown-SPACE', function() { gameScene.movingCamera = true;},this);
+	this.input.keyboard.on('keyup-SPACE', function() { gameScene.movingCamera = false;},this);
 }
 
 function create() {
-	
-	var titleText = this.make.text({
+//--------------------------------------------------------------Create Screen text
+	gameScene.selectFighter_txt = [this.make.text({
+		x: this.cameras.main.width / 4,
+		y: 50,
+		text: 'Select a Fighter!',
+		style: {
+			font: '42px monospace',
+			fill: '#000000'
+	}
+	}),
+	this.make.text({
 		x: this.cameras.main.width / 2,
 		y: 50,
-		text: 'Press SPACE to move camera',
+		text: '      Choose well ...\n \n '+
+		'      If a fighter survives \n'+
+		'       the first enemy, he\'ll \n'+
+		'       have a chance to defeat\n'+
+		'       the enemy Queen.\n\n'+
+		'       God Save the Queen!!! \n\n'+
+		'             CURSORS: Move\n'+
+		'             Z: Quick Attack \n'+
+		'             X: Heavy Attack \n'+
+		'             C: Defense\n'+
+		'             P: Pause',
 		style: {
 			font: '28px monospace',
 			fill: '#ffffff'
 	}
-	});
-	
-	titleText.setOrigin(0.5, 0.5);
-	cursors = this.input.keyboard.createCursorKeys();
-	keyPause = this.input.keyboard.addKey('P');  // Get key P object
+	})];
+	gameScene.selectFighter_txt[0].setOrigin(0.5, 0.5);
+	gameScene.selectFighter_txt[1].setOrigin(0, 0);
+//----------------------------------------------------------------REGISTER CONTROLS KEYS
+	gameScene.inputKeys = {
+		cursors: this.input.keyboard.createCursorKeys(),
+		keyPause : this.input.keyboard.addKey('P'),
+		quickAttack_key : this.input.keyboard.addKey('Z'),
+		heavyAttack_key : this.input.keyboard.addKey('X'),
+		defense_key : this.input.keyboard.addKey('C')
+	}
+
+
+//----------------------------------------------------------------CREATE TEAMS
+	gameScene.playerTeam = new Team(gameScene.playerColor,gameScene);
+	gameScene.iaTeam = new Team(!gameScene.playerColor,gameScene);
 
 }
 
 function update() {
-	if(movingCamera){
+	if(gameScene.movingCamera){
 		moveMainCamera_to(this.cameras.main,1800,1);
 	}
-
+	processInput();
 }
 
 
 
 function processInput(){ 
-	if (cursors.left.isDown) {
-		player.setVelocityX(-160);
-		player.anims.play('left', true);
+	if (gameScene.inputKeys.cursors.left.isDown) {
+		gameScene.movingCamera = true;
 	}
-	else if (cursors.right.isDown) {
-		player.setVelocityX(160);
-		player.anims.play('right', true);
+	else if (gameScene.inputKeys.cursors.right.isDown) {
+		// player.setVelocityX(160);
+		// player.anims.play('right', true);
 	}
 	else {
-		player.setVelocityX(0);
-		player.anims.play('turn');
 	}
 
-	if (cursors.up.isDown && player.body.touching.down) {
-		player.setVelocityY(-630);
+	if (gameScene.inputKeys.cursors.up.isDown && player.body.touching.down) {
+		//player.setVelocityY(-630);
 	}
-	if (keyPause.isDown) {
+	if (gameScene.inputKeys.keyPause.isDown) {
 		this.scene.sleep();
 		this.scene.run('menu');
-		txt='Continue...';
 
 	}
 }
