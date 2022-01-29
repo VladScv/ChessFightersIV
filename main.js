@@ -40,7 +40,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 /_/_/_/\_,_/\_,_/\__/  |__,__/_/\__/_//_/           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 */
 //CONST
-
+var SPAWN_PLAYER = 800;
+var SPAWN_ENEMY = 1600;
 
 
  //SCENE CONFIGURATIONS:
@@ -375,30 +376,32 @@ function create() {
 		createAnimations('ROOK',WHITE);
 		
 		fighter.sprite.anims.play('idle',false);
-		let aux = this.physics.add.staticImage(100+i*150, 500,'select_btn')
-		buttons.push(aux)
-		buttons[i].setOrigin(0.5,0.5);
+		var aux = this.physics.add.staticImage(100 + (i * 150), 500, 'select_btn');
+		buttons.push(aux);
+		buttons[i].setOrigin(0.5, 0.5);
 		buttons[i].setInteractive();
-		buttons[i].on('pointerdown', function() { // cambiar por un carrusel con los cursores
-			activateFighter(true,buttons.indexOf(this));
-			buttons.forEach(function(button) {
-				if(button!=null){
-					button.interactive = false;
-				}
-			});
-			console.log(buttons.indexOf(this));
-		})
-		
-		buttons[i].on('pointerover', function() { // cambiar por un carrusel con los cursores
-			try {
-				gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('attack1',true);
-			}catch(e){};
-		})
-		buttons[i].on('pointerout', function() { // cambiar por un carrusel con los cursores	
-			try {
-				gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('idle',true);
-			}catch(e){};
-		})
+		buttons[i].on('pointerdown', function () {
+			if(gameScene.currentFighter==null){	
+				this.disableInteractive;
+				activateFighter(true, buttons.indexOf(this));
+				buttons.forEach(function (button) {
+					if (button != null) {
+						button.disableInteractive();
+					}
+				});
+				console.log(buttons.indexOf(this));}
+		});
+
+	buttons[i].on('pointerover', function () {
+		try {
+			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('attack1', true);
+		} catch (e) { };
+	});
+	buttons[i].on('pointerout', function () {
+		try {
+			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('idle', true);
+		} catch (e) { };
+	});
 		gameScene.playerTeam.fighters[i]=fighter;
 	 }
 	 gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
@@ -419,11 +422,15 @@ function create() {
 	 }
 }
 
+function create_selection_btn(i) {
+	
+}
+
 function update() {
 	switch (gameScene.gameState){
 		case 'SELECTFIGHTER':
 			if(gameScene.currentFighter!=null){
-				gameScene.currentFighter.destroy;
+				gameScene.currentFighter.sprite.destroy();
 				gameScene.currentFighter= null;
 				goTo_selection();
 			}
@@ -503,12 +510,13 @@ function activateFighter(isPlayer,index){
 		gameScene.currentFighter= gameScene.playerTeam.fighters[index];
 		delete gameScene.playerTeam.fighters[index];
 		delete buttons[index];
-		gameScene.gameState='FIGHT';
-
+		activateFighter(false,fighterType.indexOf(fighterType.random()));
 
 	}else{
 		gameScene.iaFighter= gameScene.iaTeam.fighters[index];
 		delete gameScene.iaTeam.fighters[index];
+		
+		gameScene.gameState='FIGHT';
 	}
 
 }
@@ -561,7 +569,14 @@ function moveMainCamera_to(camera,xPoint,speed){
 		movingCamera=false;
 	}
 }
-function goTo_selection(){gameScene.fixCamPoint=600;}
+function goTo_selection(){
+	buttons.forEach(function (button) {
+		if (button != null) {
+			button.disableInteractive();
+		}
+	});
+	gameScene.fixCamPoint=600;
+}
 function goTo_queen(){gameScene.fixCamPoint=1600;}
 function goTo_fight(){gameScene.fixCamPoint=1200;}
 function fightCountdown(){
