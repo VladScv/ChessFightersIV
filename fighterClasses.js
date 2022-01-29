@@ -13,7 +13,7 @@ class Fighter {
         this.team = team;
         //let keyName= type + '_';
         this.sprite = null;
-      
+        this.button = null;
         this.fighterState= 'IDLE';
         let i = 0;
         switch(type) {

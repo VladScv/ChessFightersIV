@@ -76,6 +76,7 @@ var gameScene = {
 	inputKeys:[],
 	selectFighter_txt:'',
 	currentFighter:null,
+	iaFighter:null,
 	fightingQueen:false,
 	gameStarted: false,
 	playerWins:false, 
@@ -139,6 +140,7 @@ function bootLoader() {
 	this.load.spritesheet('ROOK_white_hit','assets/ROOK_white_hit.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.image('bg','assets/black_bg.png');
 	this.load.image('logicFloor','assets/logicFloor.png');
+	this.load.image('select_btn','assets/selectButton.png');
 	this.load.image('blackTeam_btn','assets/selectTeam_black.png');
 	this.load.image('blackTeam_btn_on','assets/selectTeam_black_on.png');
 	this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
@@ -305,7 +307,7 @@ function menuUpdate() {
 		 ██████  ██   ██ ██      ██ ███████     ███████  ██████ ███████ ██   ████ ███████
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 
-
+buttons = [];
 
 function preload() {
 	this.gameState ='SELECTFIGHTER';
@@ -357,16 +359,15 @@ function create() {
 	}
 //---------------------------------------------------------------create the floor object
 	const floor= this.physics.add.staticImage(1200,640,'logicFloor');
-
 //----------------------------------------------------------------CREATE TEAMS
-	gameScene.playerTeam = new FighterTeam(gameScene.playerColor,gameScene);
 	
+	gameScene.playerTeam = new FighterTeam(gameScene.playerColor,gameScene);
 	 for(i=0; i<fighterType.length;i++){
 		let keyName=fighterType[i];
 		let colorName= (game.playerColor? 'white':'black');
 		let fighter= new Fighter(fighterType[i],gameScene.playerTeam,gameScene,!gameScene.playerColor);
-		fighter.sprite=  this.physics.add.sprite(100+i*150, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);;
-        fighter.sprite.setBounce(0.15);
+		fighter.sprite=  this.physics.add.sprite(100+i*150, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);
+        fighter.sprite.setBounce(0.15)
 		this.physics.add.collider(fighter.sprite, floor);
 		keyName='ROOK';
 		fighter.sprite.body.setGravityY(300)
@@ -374,13 +375,23 @@ function create() {
 		createAnimations('ROOK',WHITE);
 		
 		fighter.sprite.anims.play('idle',false);
-		fighter.sprite.fighterIndex=i;
-		fighter.sprite.setInteractive();
-		fighter.sprite.on('pointerdown', function() { // cambiar por un carrusel con los cursores
-			activateFighter(true,this.fighterIndex);
-			console.log(this.fighterIndex);
+		let aux = this.physics.add.staticImage(100+i*150, 500,'select_btn')
+		buttons.push(aux)
+		buttons[i].setOrigin(0.5,0.5);
+		buttons[i].setInteractive();
+		buttons[i].on('pointerdown', function() { // cambiar por un carrusel con los cursores
+			activateFighter(true,buttons.indexOf(this));
+			console.log(buttons.indexOf(this));
 		})
 		
+		buttons[i].on('pointerover', function() { // cambiar por un carrusel con los cursores
+			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('attack1',true);
+			console.log(buttons.indexOf(this));
+		})
+		buttons[i].on('pointerout', function() { // cambiar por un carrusel con los cursores
+			
+			gameScene.playerTeam.fighters[buttons.indexOf(this)].sprite.anims.play('idle',true);
+		})
 		gameScene.playerTeam.fighters[i]=fighter;
 	 }
 	 gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
@@ -389,6 +400,7 @@ function create() {
 		let colorName= ((!game.playerColor)? 'white':'black')
 	 	let fighter= new Fighter(fighterType[i],gameScene.iaTeam,gameScene,!game.playerColor);
 	 	fighter.sprite=  this.physics.add.sprite(2400-100*i, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);
+		fighter.sprite.flipX=true;
         fighter.sprite.setBounce(0.15);
 		keyName="ROOK"
 		this.physics.add.collider(fighter.sprite, floor);
@@ -404,6 +416,7 @@ function update() {
 	switch (gameScene.gameState){
 		case 'SELECTFIGHTER':
 			if(gameScene.currentFighter!=null){
+				gameScene.currentFighter.destroy;
 				gameScene.currentFighter= null;
 				goTo_selection();
 			}
@@ -514,19 +527,19 @@ function createAnimations(keyName,color) {
 	});
 	game.anims.create({
 		key: 'attack2',
-		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12]}),
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9]}),
 		frameRate: 12,
 		repeat: 0,
 	});
 	game.anims.create({
 		key: 'defense',
-		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_defense', {frames:[0,1,2,3,4,5]}),
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_defense', {frames:[0,1,2,3,4,5,6,7,8]}),
 		frameRate: 12,
 		repeat: 0,
 	});
 	game.anims.create({
 		key: 'hit',
-		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_hit', {frames:[0,1,2,3,4,5,6,7,8]}),
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_hit', {frames:[0,1,2,3,4,5,6,7,8,9]}),
 		frameRate: 12,
 		repeat: 0,
 	});
