@@ -11,20 +11,32 @@ class Fighter {
     constructor(type,team,gameScene,color) {
         this.type = type;
         this.team = team;
-        this.sprite =this.addImage()
-        this.speed = 1;
-
+        //let keyName= type + '_';
+        this.sprite = null;
+      
+        this.fighterState= 'IDLE';
+        let i = 0;
         switch(type) {
             case "QUEEN":
+                this.speed = 2;
+                this.damage = 4;
                 break;
             case "ROOK":
+                this.speed = 1;
+                this.damage = 3;
                 break;
             case "BISHOP": 
+                this.speed = 2;
+                this.damage = 2;
                 break;
             case "KNIGHT":
+                this.speed = 3;
+                this.damage = 2;
                 break;
             case "PAWN":
             default: 
+                this.speed = 2;
+                this.damage = 1;
                 break;
         }
         
@@ -37,9 +49,7 @@ class FighterTeam {
         this.teamColor = color;
         this.gameScene = gameScene;
         this.fighters=[];
-        for(i=0; i<fighterType.length;i++){
-            this.fighters.add(new Fighter(fighterType[i],this,gameScene,color));
-        }
+       
 
     }
 

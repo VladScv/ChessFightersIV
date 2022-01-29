@@ -75,6 +75,7 @@ var gameScene = {
 	playerColor:null,
 	inputKeys:[],
 	selectFighter_txt:'',
+	currentFighter:null,
 	preload: preload,
 	create: create,
 	update: update
@@ -124,9 +125,11 @@ function bootLoader() {
 	this.load.image('space', 'assets/space3.png');
 	this.load.image('logo', 'phaser3-logo.png');
 	this.load.image('redp', 'assets/redp.png');
-	this.load.spritesheet('PAWN_walk','assets/pawn_walk.png',{ frameWidth: 341, frameHeight: 341 });
+	this.load.spritesheet('ROOK_white_idle','assets/ROOK_white_idle.png',{ frameWidth: 512, frameHeight: 383 });
+	this.load.spritesheet('ROOK_white_walk','assets/ROOK_white_walk.png',{ frameWidth: 512, frameHeight: 383 });
+	this.load.spritesheet('ROOK_white_attack1','assets/ROOK_white_attack1.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.image('bg','assets/black_bg.png');
-
+	this.load.image('logicFloor','assets/logicFloor.png');
 	this.load.image('blackTeam_btn','assets/selectTeam_black.png');
 	this.load.image('blackTeam_btn_on','assets/selectTeam_black_on.png');
 	this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
@@ -297,7 +300,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 function preload() {
 	this.gameState ='SELECTFIGHTER';
-	var background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
+	gameScene.background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
 	if(game.playerColor===WHITE){background.flipX=true;}
 	this.input.keyboard.on('keydown-SPACE', function() { gameScene.movingCamera = true;},this);
 	this.input.keyboard.on('keyup-SPACE', function() { gameScene.movingCamera = false;},this);
@@ -343,17 +346,73 @@ function create() {
 		heavyAttack_key : this.input.keyboard.addKey('X'),
 		defense_key : this.input.keyboard.addKey('C')
 	}
-
+//---------------------------------------------------------------create the floor object
+	const floor= this.physics.add.staticImage(1200,640,'logicFloor');
 
 //----------------------------------------------------------------CREATE TEAMS
-	gameScene.playerTeam = new Team(gameScene.playerColor,gameScene);
-	gameScene.iaTeam = new Team(!gameScene.playerColor,gameScene);
+	gameScene.playerTeam = new FighterTeam(gameScene.playerColor,gameScene);
+	
+	// for(i=0; i<1;i++){
+		fighter= new Fighter(fighterType[1],gameScene.playerTeam,gameScene,!gameScene.playerColor);
+		fighter.sprite=  this.physics.add.sprite(100, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);;
+        fighter.sprite.setBounce(0.2);
+		this.physics.add.collider(fighter.sprite, floor);
+		let keyName='ROOK';
+		fighter.sprite.body.setGravityY(300)
+		fighter.sprite.setSize(100,200,true)
+		createAnimations('ROOK',WHITE);
+		
+		fighter.sprite.anims.play('idle',false);
+		fighter.sprite.setInteractive();
+		fighter.sprite.on('pointerdown', () =>{
+			currentFighter=this;
+			console.log('currentFighter');
+		})
+		
+		gameScene.playerTeam.fighters[0]=fighter;
+	// }
+	// gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
+	// for(i=0; i<fighterType.length;i++){
+	// 	let fighter= new Fighter(fighterType[i],gameScene.iaTeam,gameScene,!gameScene.playerColor);
+	// 	fighter.sprite=  this.physics.add.sprite(2400-100*i, 100,'ROOK_idle' ).setOrigin(0.5,0.5);
+    //     fighter.sprite.setBounce(0.1);
+    //     fighter.sprite.setCollideWorldBounds(false);
+	// 	this.anims.create({
+	// 		key: 'idle',
+	// 		frames:  this.anims.generateFrameNumbers('ROOK_idle', { start: 0, end: 13 }),
+	// 		frameRate: 20
+	// 	});
+		
+	// 	gameScene.iaTeam.fighters[i]=fighter;
 
+	// }
+}
+
+function createAnimations(keyName,color) {
+	let colorName=(color ? 'white':'black');
+	game.anims.create({
+		key: 'idle',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_idle', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12]}),
+		frameRate: 12,
+		repeat: -1,
+	});
+	game.anims.create({
+		key: 'walk',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_walk', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}),
+		frameRate: 30,
+		repeat: 0,
+	});
+	game.anims.create({
+		key: 'attack1',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_attack1', {frames:[0,1,2,3,4,5,6,7,8,9]}),
+		frameRate: 12,
+		repeat: 0,
+	});
 }
 
 function update() {
 	if(gameScene.movingCamera){
-		moveMainCamera_to(this.cameras.main,1800,1);
+		moveMainCamera_to(this.cameras.main,1800,10);
 	}
 	processInput();
 }
@@ -362,22 +421,35 @@ function update() {
 
 function processInput(){ 
 	if (gameScene.inputKeys.cursors.left.isDown) {
-		gameScene.movingCamera = true;
+		if(fighter.sprite.body.velocity.x>(-180-(fighter.speed*10))){fighter.sprite.body.velocity.x-=20}
+		else{fighter.sprite.body.velocity.x=-200-(fighter.speed*10)}
+		fighter.sprite.anims.play('walk',true);
+		fighter.sprite.flipX=true;
 	}
 	else if (gameScene.inputKeys.cursors.right.isDown) {
-		// player.setVelocityX(160);
-		// player.anims.play('right', true);
+		fighter.sprite.anims.play('walk',true);
+		if(fighter.sprite.body.velocity.x<180+(fighter.speed*10)){fighter.sprite.body.velocity.x+=20}
+		else{fighter.sprite.body.velocity.x=200+(fighter.speed*10)}
+		fighter.sprite.flipX=false;
 	}
 	else {
+		if(fighter.sprite.body.velocity.x>0){fighter.sprite.body.velocity.x-=20;}
+		else if(fighter.sprite.body.velocity.x<0){fighter.sprite.body.velocity.x+=20;}
+		else{}
+		
 	}
 
-	if (gameScene.inputKeys.cursors.up.isDown && player.body.touching.down) {
-		//player.setVelocityY(-630);
+	if (gameScene.inputKeys.cursors.up.isDown&& fighter.sprite.body.touching.down) {
+		fighter.sprite.setVelocityY(-450);
 	}
 	if (gameScene.inputKeys.keyPause.isDown) {
 		this.scene.sleep();
 		this.scene.run('menu');
 
+	}
+	if(gameScene.inputKeys.quickAttack_key.isDown){
+		
+		fighter.sprite.anims.play('attack1',true);
 	}
 }
 
