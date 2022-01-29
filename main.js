@@ -128,6 +128,9 @@ function bootLoader() {
 	this.load.spritesheet('ROOK_white_idle','assets/ROOK_white_idle.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.spritesheet('ROOK_white_walk','assets/ROOK_white_walk.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.spritesheet('ROOK_white_attack1','assets/ROOK_white_attack1.png',{ frameWidth: 512, frameHeight: 383 });
+	this.load.spritesheet('ROOK_white_attack2','assets/ROOK_white_attack2.png',{ frameWidth: 512, frameHeight: 383 });
+	this.load.spritesheet('ROOK_white_defense','assets/ROOK_white_defense.png',{ frameWidth: 512, frameHeight: 383 });
+	this.load.spritesheet('ROOK_white_hit','assets/ROOK_white_hit.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.image('bg','assets/black_bg.png');
 	this.load.image('logicFloor','assets/logicFloor.png');
 	this.load.image('blackTeam_btn','assets/selectTeam_black.png');
@@ -352,7 +355,7 @@ function create() {
 //----------------------------------------------------------------CREATE TEAMS
 	gameScene.playerTeam = new FighterTeam(gameScene.playerColor,gameScene);
 	
-	// for(i=0; i<1;i++){
+	 for(i=0; i<1;i++){
 		fighter= new Fighter(fighterType[1],gameScene.playerTeam,gameScene,!gameScene.playerColor);
 		fighter.sprite=  this.physics.add.sprite(100, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);;
         fighter.sprite.setBounce(0.2);
@@ -370,7 +373,7 @@ function create() {
 		})
 		
 		gameScene.playerTeam.fighters[0]=fighter;
-	// }
+	 }
 	// gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
 	// for(i=0; i<fighterType.length;i++){
 	// 	let fighter= new Fighter(fighterType[i],gameScene.iaTeam,gameScene,!gameScene.playerColor);
@@ -405,6 +408,24 @@ function createAnimations(keyName,color) {
 	game.anims.create({
 		key: 'attack1',
 		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_attack1', {frames:[0,1,2,3,4,5,6,7,8,9]}),
+		frameRate: 12,
+		repeat: 0,
+	});
+	game.anims.create({
+		key: 'attack2',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12]}),
+		frameRate: 12,
+		repeat: 0,
+	});
+	game.anims.create({
+		key: 'defense',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_defense', {frames:[0,1,2,3,4,5]}),
+		frameRate: 12,
+		repeat: 0,
+	});
+	game.anims.create({
+		key: 'hit',
+		frames: game.anims.generateFrameNumbers(keyName +'_'+colorName+ '_hit', {frames:[0,1,2,3,4,5,6,7,8]}),
 		frameRate: 12,
 		repeat: 0,
 	});
@@ -450,6 +471,13 @@ function processInput(){
 	if(gameScene.inputKeys.quickAttack_key.isDown){
 		
 		fighter.sprite.anims.play('attack1',true);
+	}else if(gameScene.inputKeys.heavyAttack_key.isDown){
+		
+		fighter.sprite.anims.play('attack2',true);
+	}
+	else if(gameScene.inputKeys.defense_key.isDown){
+		
+		fighter.sprite.anims.play('defense',true);
 	}
 }
 
