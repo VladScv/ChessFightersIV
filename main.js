@@ -446,13 +446,23 @@ function update() {
 				updateFight();
 			}else{ 
 				if(gameScene.movingCamera){
-					gameScene.currentFighter.sprite.body.setVelocityX(200);
-					try{gameScene.iaFighter.sprite.body.setVelocityX(-200);}catch(e){console.log(e)}
 					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
 				}else{
-					if(gameScene.currentFighter.sprite.body.position.x>=810){gameScene.currentFighter.sprite.body.setVelocityX(0)}
-					if(gameScene.iaFighter.sprite.body.position.x<=1590){gameScene.iaFighter.sprite.body.setVelocityX(0)}
 					fightCountdown();
+				}
+				if(gameScene.iaFighter.sprite.body.position.x<=1590){
+					gameScene.iaFighter.sprite.body.setVelocityX(0);
+					gameScene.iaFighter.sprite.anims.play('idle',true);
+				}else{
+					gameScene.iaFighter.sprite.body.setVelocityX(-200);
+					gameScene.iaFighter.sprite.anims.play('walk',true);
+				}
+				if(gameScene.currentFighter.sprite.body.position.x>=800){
+					gameScene.currentFighter.sprite.anims.play('idle',true);
+					gameScene.currentFighter.sprite.body.setVelocityX(0)
+				}else{
+					gameScene.currentFighter.sprite.body.setVelocityX(200);
+					gameScene.currentFighter.sprite.anims.play('walk',true);
 				}
 			}
 			break;
@@ -525,8 +535,8 @@ function activateFighter(isPlayer,index){
 		delete gameScene.iaTeam.fighters[index];
 		gameScene.fixCamPoint=SPAWN_PLAYER;
 		gameScene.movingCamera = true;
-		
-		//try{ gameScene.iaTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
+		gameScene.currentFighter.sprite.anims.play('walk',true);
+		gameScene.iaFighter.sprite.anims.play('walk',true);
 		gameScene.gameState='FIGHT';
 
 	}
