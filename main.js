@@ -40,7 +40,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 /_/_/_/\_,_/\_,_/\__/  |__,__/_/\__/_//_/           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 */
 //CONST
-var SPAWN_PLAYER = 800;
+var SPAWN_PLAYER = 1200;
 var SPAWN_ENEMY = 1600;
 
 
@@ -445,9 +445,12 @@ function update() {
 				updateFight();
 			}else{ 
 				if(gameScene.movingCamera){
-					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,10);
+					gameScene.currentFighter.sprite.body.setVelocityX(200);
+					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
+				}else{
+					if(gameScene.currentFighter.sprite.body.position.x>=1200){gameScene.currentFighter.sprite.body.setVelocityX(0)}
+					fightCountdown();
 				}
-				fightCountdown();
 			}
 			break;
 		case 'GAMEOVER':
@@ -509,13 +512,20 @@ function activateFighter(isPlayer,index){
 	if(isPlayer){
 		gameScene.currentFighter= gameScene.playerTeam.fighters[index];
 		delete gameScene.playerTeam.fighters[index];
+		try{ gameScene.playerTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
+
 		delete buttons[index];
-		activateFighter(false,fighterType.indexOf(fighterType.random()));
+		activateFighter(false,fighterType[ Phaser.Math.Between(1, 4)]);
+		gameScene.currentFighter.scrollFactorX=0;
 
 	}else{
 		gameScene.iaFighter= gameScene.iaTeam.fighters[index];
+		//gameScene.iaFighter.setX(SPAWN_ENEMY);
 		delete gameScene.iaTeam.fighters[index];
+		gameScene.fixCamPoint=SPAWN_PLAYER;
+		gameScene.movingCamera = true;
 		
+		try{ gameScene.iaTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
 		gameScene.gameState='FIGHT';
 	}
 
@@ -565,8 +575,9 @@ function createAnimations(keyName,color) {
 function moveMainCamera_to(camera,xPoint,speed){ 	
 	if (camera.midPoint.x<xPoint){
 		camera.scrollX+=speed;
+		if (camera.midPoint.x<xPoint){movingCamera=false;}
 	}else{
-		movingCamera=false;
+		gameScene.movingCamera=false;
 	}
 }
 function goTo_selection(){
