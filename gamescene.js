@@ -118,7 +118,7 @@ function create() {
 		buttons[i].setInteractive();
 		buttons[i].on('pointerdown', function () {
 			if(gameScene.currentFighter==null){	
-				this.disableInteractive;
+				this.disableInteractive();
 				activateFighter(true, buttons.indexOf(this));
 				activateFighter(false,fighterType[ Phaser.Math.Between(1, 4)]);
 				buttons.forEach(function (button) {
