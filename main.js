@@ -43,6 +43,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 var SPAWN_PLAYER = 1200;
 var SPAWN_ENEMY = 1600;
 
+class StateManager {
+}
+
+var gameStateManager = new StateManager();
+
 
 /*
  *  PHASER GAME CONFIGURATION
@@ -63,7 +68,7 @@ var config = {
 			debug: true
 		}
 	},
-	scene: [loaderScene, menuScene, gameScene]
+	scene: [loaderScene, menuScene, gameScene,fightScene]
 };
 var game = new Phaser.Game(config); // <--- main game object, it have the scenes, more known as "this"
 
