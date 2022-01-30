@@ -16,6 +16,7 @@ class Fighter {
         this.button = null;
         this.fighterState= 'IDLE';
         let i = 0;
+        this.attackBox= null;
         switch(type) {
             case "QUEEN":
                 this.speed = 2;

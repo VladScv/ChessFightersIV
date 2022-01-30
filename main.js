@@ -82,6 +82,9 @@ var gameScene = {
 	gameStarted: false,
 	playerWins:false, 
 	fixCamPoint:800,
+	countdown:null,
+	playerAttack_collider:null,
+	iaAttack_collider:null,
 	preload: preload,
 	create: create,
 	update: update
@@ -108,7 +111,6 @@ var config = {
 	},
 	scene: [loaderScene, menuScene, gameScene]
 };
-
 var game = new Phaser.Game(config); // <--- main game object, it have the scenes, more known as "this"
 
 
@@ -146,9 +148,10 @@ function bootLoader() {
 	this.load.image('blackTeam_btn_on','assets/selectTeam_black_on.png');
 	this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
 	this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
+	this.load.spritesheet('_countdown','assets/countdown.png',{ frameWidth: 50, frameHeight: 50 });
 	//-----------------------------------------------------------------------loading screen
 	//LOAD SECUENTIALIMAGES
-	for (var i = 0; i < 50; i++) {
+	for (var i = 0; i < 5; i++) {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
@@ -316,10 +319,14 @@ function preload() {
 	if(gameScene.playerColor===WHITE){gameScene.background.flipX=true;}
 	this.input.keyboard.on('keydown-SPACE', function() { gameScene.movingCamera = true;},this);
 	this.input.keyboard.on('keyup-SPACE', function() { gameScene.movingCamera = false;},this);
+	
+	
 }
 
 function create() {
 //--------------------------------------------------------------Create Screen text
+	mainPhysics = this.physics;
+	// const countdown = this.add.sprite('countdown')
 	gameScene.selectFighter_txt = [this.make.text({
 		x: this.cameras.main.width / 4,
 		y: 50,
@@ -358,6 +365,8 @@ function create() {
 		heavyAttack_key : this.input.keyboard.addKey('X'),
 		defense_key : this.input.keyboard.addKey('C')
 	}
+
+	
 //---------------------------------------------------------------create the floor object
 	const floor= this.physics.add.staticImage(1200,640,'logicFloor');
 //----------------------------------------------------------------CREATE TEAMS
@@ -376,7 +385,10 @@ function create() {
 		createAnimations('ROOK',WHITE);
 		
 		fighter.sprite.anims.play('idle',false);
-		var aux = this.physics.add.staticImage(100 + (i * 150), 500, 'select_btn');
+		let aux = this.physics.add.staticImage(100 + (i * 150), 500, 'select_btn');
+		
+		// gameScene.countdown.body.setAllowGravity(false);
+
 		buttons.push(aux);
 		buttons[i].setOrigin(0.5, 0.5);
 		buttons[i].setInteractive();
@@ -423,10 +435,7 @@ function create() {
 	 }
 }
 
-function create_selection_btn(i) {
-	
-}
-
+//-----------------------------------------------------UPDATE FUNCTION!
 function update() {
 	switch (gameScene.gameState){
 		case 'SELECTFIGHTER':
@@ -443,12 +452,45 @@ function update() {
 			}
 		case 'FIGHT':
 			if(gameScene.gameStarted){
+				if(!gameScene.playerAttack_collider!=='null'){
+					console.log('afsafdsafsdafds')
+					this.physics.add.collider(gameScene.currentFighter.sprite,gameScene.iaFighter.sprite);
+									
+					// this.physics.add.existing(gameScene.currentFighter.attackBox);
+
+					// gameScene.iaAttack_collider= this.physics.add.collider(
+					// 	gameScene.iaFighter.attackBox,
+					// 	gameScene.currentFighter,
+					// 	function(_attack,fighter){
+					// 		if(fighter.fighterState!='INMUNE'||fighter.fighterState!='DEFENDING'){
+					// 			hit(fighter);
+					// 		}
+					// 	}
+					// );
+				}
 				updateFight();
 			}else{ 
 				if(gameScene.movingCamera){
 					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
 				}else{
-					fightCountdown();
+					if((typeof countdown !== 'undefined')){
+					
+					}
+					else{
+						var countdown = this.add.sprite(1200 , 20, 'selectButton');
+						countdown.anims.create({
+							key: 'countdown',
+							frames: this.anims.generateFrameNumbers('_countdown', {frames:[0,1,2,3]}),
+							frameRate: 2,
+							repeat: 0
+						})
+						countdown.play('countdown',false);
+						countdown.on('animationcomplete', function () {
+							gameScene.gameStarted = true;
+							// blockFightZone();
+							this.visible = false;
+						});
+					}
 				}
 				if(gameScene.iaFighter.sprite.body.position.x<=1590){
 					gameScene.iaFighter.sprite.body.setVelocityX(0);
@@ -473,7 +515,38 @@ function update() {
 	}
 	processInput();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------FIGHT SYSTEM
+function updateFight(){
+	if(gameScene.currentFighter.fighterState!='INMUNE'){
+		if(!check_enemyHit()){
+			processInput();
+			// checkPlayerHit();
+		}
+	}
 
+	if(gameScene.currentFighter.health<=0){
+		// matchOver(false,gameScene.fightingQueen);
+	}else if(gameScene.iaFighter.health<=0){
+		// matchOver(true,gameScene.fightingQueen);
+	}
+
+}
+function check_enemyHit() {
+	// if((enemyFighter.attackBox.collides(playerFighter))&&( playerFighter.fighterState!= DEFENDING)){
+	// 	playerFighter.health -= enemyFighter.damage*modifier; 
+	// 	playerFighter.fighterState= INMUNE;
+	// 	playerFighter.setAnimation('hit');
+	// 	playerFighter.on.animationEnd.fighterState = idle;
+	// 	return true;
+	// }
+	return false;
+}
+
+function attack(){ 
+}
 
 //------------------------------------------------------------------INPUT MANAGEMENT
 
@@ -483,7 +556,7 @@ function processInput(){
 		if (gameScene.inputKeys.cursors.left.isDown) {
 			if(fighter.sprite.body.velocity.x>(-180-(fighter.speed*10))){fighter.sprite.body.velocity.x-=20}
 			else{fighter.sprite.body.velocity.x=-200-(fighter.speed*10)}
-			fighter.sprite.anims.play('walk',true);
+			fighter.sprite.anims.play('walk',true)
 			fighter.sprite.flipX=true;
 		}
 		else if (gameScene.inputKeys.cursors.right.isDown) {
@@ -508,8 +581,27 @@ function processInput(){
 
 		}
 		if(gameScene.inputKeys.quickAttack_key.isDown){
+			fighter.fighterState='FIGHTING';
+
+			fighter.sprite.anims.play('attack1',true)
+				if(fighter.fighterState=='FIGHTING'){
+					attackBox= mainPhysics.add.sprite(gameScene.currentFighter.sprite.x+150,gameScene.currentFighter.sprite.y,'select_btn').setOrigin(0.5,0.5)
+					attackBox.body.setAllowGravity(false);
+					gameScene.playerAttack_collider=mainPhysics.add.collider(
+						attackBox,
+						gameScene.iaFighter.sprite,
+						function(_attack,fighter){
+							if(gameScene.iaFighter.fighterState!='INMUNE'||gameScene.iaFighter.fighterState!='DEFENDING'){
+								// gameScene.iaFighter.hit();
+								fighter.anims.play('hit',true);
+							}
+							_attack.destroy();
+						}
+					);
+					// attackBox.destroy();
+				}
 			
-			fighter.sprite.anims.play('attack1',true);
+			// fighter.attackBox.destroy();
 		}else if(gameScene.inputKeys.heavyAttack_key.isDown){
 			
 			fighter.sprite.anims.play('attack2',true);
@@ -538,7 +630,10 @@ function activateFighter(isPlayer,index){
 		gameScene.currentFighter.sprite.anims.play('walk',true);
 		gameScene.iaFighter.sprite.anims.play('walk',true);
 		gameScene.gameState='FIGHT';
+		gameScene.selectFighter_txt.forEach(function(f){f.visible=false;});
 
+		
+		
 	}
 
 }
@@ -601,6 +696,3 @@ function goTo_selection(){
 	gameScene.fixCamPoint=600;
 }
 function goTo_queen(){gameScene.fixCamPoint=1600;}
-function fightCountdown(){
-
-};
