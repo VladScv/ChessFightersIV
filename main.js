@@ -384,6 +384,7 @@ function create() {
 			if(gameScene.currentFighter==null){	
 				this.disableInteractive;
 				activateFighter(true, buttons.indexOf(this));
+				activateFighter(false,fighterType[ Phaser.Math.Between(1, 4)]);
 				buttons.forEach(function (button) {
 					if (button != null) {
 						button.disableInteractive();
@@ -404,20 +405,20 @@ function create() {
 	});
 		gameScene.playerTeam.fighters[i]=fighter;
 	 }
-	 gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
+	gameScene.iaTeam = new FighterTeam(!gameScene.playerColor,gameScene);
 	 for(i=0; i<fighterType.length;i++){
 		let keyName=fighterType[i];
 		let colorName= ((!game.playerColor)? 'white':'black')
-	 	let fighter= new Fighter(fighterType[i],gameScene.iaTeam,gameScene,!game.playerColor);
-	 	fighter.sprite=  this.physics.add.sprite(2400-100*i, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);
-		fighter.sprite.flipX=true;
-        fighter.sprite.setBounce(0.15);
+	 	let iafighter= new Fighter(fighterType[i],gameScene.iaTeam,gameScene,!game.playerColor);
+	 	iafighter.sprite=  this.physics.add.sprite(2400-100*i, 100,'ROOK_white_idle' ).setOrigin(0.5,0.5);
+		iafighter.sprite.flipX=true;
+        iafighter.sprite.setBounce(0.15);
 		keyName="ROOK"
-		this.physics.add.collider(fighter.sprite, floor);
-		fighter.sprite.body.setGravityY(300)
-		fighter.sprite.setSize(100,200,true)
+		this.physics.add.collider(iafighter.sprite, floor);
+		iafighter.sprite.body.setGravityY(300)
+		iafighter.sprite.setSize(100,200,true)
 		createAnimations('ROOK',WHITE);
-	 	gameScene.iaTeam.fighters[i]=fighter;
+	 	gameScene.iaTeam.fighters[i]=iafighter;
 
 	 }
 }
@@ -446,9 +447,11 @@ function update() {
 			}else{ 
 				if(gameScene.movingCamera){
 					gameScene.currentFighter.sprite.body.setVelocityX(200);
+					try{gameScene.iaFighter.sprite.body.setVelocityX(-200);}catch(e){console.log(e)}
 					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
 				}else{
-					if(gameScene.currentFighter.sprite.body.position.x>=1200){gameScene.currentFighter.sprite.body.setVelocityX(0)}
+					if(gameScene.currentFighter.sprite.body.position.x>=810){gameScene.currentFighter.sprite.body.setVelocityX(0)}
+					if(gameScene.iaFighter.sprite.body.position.x<=1590){gameScene.iaFighter.sprite.body.setVelocityX(0)}
 					fightCountdown();
 				}
 			}
@@ -515,18 +518,17 @@ function activateFighter(isPlayer,index){
 		try{ gameScene.playerTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
 
 		delete buttons[index];
-		activateFighter(false,fighterType[ Phaser.Math.Between(1, 4)]);
+		console.log()
 		gameScene.currentFighter.scrollFactorX=0;
-
-	}else{
+		index=Phaser.Math.Between(1,4);
 		gameScene.iaFighter= gameScene.iaTeam.fighters[index];
-		//gameScene.iaFighter.setX(SPAWN_ENEMY);
 		delete gameScene.iaTeam.fighters[index];
 		gameScene.fixCamPoint=SPAWN_PLAYER;
 		gameScene.movingCamera = true;
 		
-		try{ gameScene.iaTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
+		//try{ gameScene.iaTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
 		gameScene.gameState='FIGHT';
+
 	}
 
 }
@@ -589,7 +591,6 @@ function goTo_selection(){
 	gameScene.fixCamPoint=600;
 }
 function goTo_queen(){gameScene.fixCamPoint=1600;}
-function goTo_fight(){gameScene.fixCamPoint=1200;}
 function fightCountdown(){
 
 };
