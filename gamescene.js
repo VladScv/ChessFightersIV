@@ -85,8 +85,8 @@ function create() {
 	gameScene.inputKeys = {
 		cursors: this.input.keyboard.createCursorKeys(),
 		keyPause : this.input.keyboard.addKey('P'),
-		quickAttack_key : this.input.keyboard.addKey('Z'),
-		heavyAttack_key : this.input.keyboard.addKey('X'),
+		attack1_key : this.input.keyboard.addKey('Z'),
+		attack2_key : this.input.keyboard.addKey('X'),
 		defense_key : this.input.keyboard.addKey('C')
 	}
 
@@ -306,7 +306,7 @@ function processInput(){
 			this.scene.run('menu');
 
 		}
-		if(gameScene.inputKeys.quickAttack_key.isDown){
+		if(gameScene.inputKeys.attack1_key.isDown){
 			fighter.fighterState='FIGHTING';
 
 			fighter.sprite.anims.play('attack1',true)
@@ -328,7 +328,7 @@ function processInput(){
 				}
 			
 			// fighter.attackBox.destroy();
-		}else if(gameScene.inputKeys.heavyAttack_key.isDown){
+		}else if(gameScene.inputKeys.attack2_key.isDown){
 			
 			fighter.sprite.anims.play('attack2',true);
 		}
