@@ -40,35 +40,51 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 /_/_/_/\_,_/\_,_/\__/  |__,__/_/\__/_//_/           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 */
 //CONST
-var SPAWN_PLAYER = 1200;
-var SPAWN_ENEMY = 1600;
+const SPAWN_PLAYER = 1200;
+const SPAWN_ENEMY = 1600;
 
-class StateManager {
-}
 
-var gameStateManager = new StateManager();
-
+const gameStateManager = {
+	values: ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN', 'GAMEOVER'],
+	currentState: 0,
+	getCurrentState: function () {
+		let state = values[this.currentState];
+		return state
+	},
+	setCurrentState: function (state) {
+		try {
+			this.currentState = values.indexOf(state);
+		} catch (e) {
+			console.log('ERR_ state send not recognized:' + state + '\n' + e)
+		}
+	},
+	next: function () {
+		this.currentState+=1;
+		if(this.currentState>=values.length()){this.currentState=0;}
+	},
+	update(){
+	}
+};
 
 /*
  *  PHASER GAME CONFIGURATION
 */
 
-var config = {
+const config = {
 	type: Phaser.AUTO,
 	scale: {
-        mode: Phaser.Scale.FIT, 
+		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.BOTH,
-        width: 1200,
-        height: 740
-    },
+		width: 1200,
+		height: 740
+	},
 	physics: {
 		default: 'arcade',
 		arcade: {
-			gravity: { y: 200 },
+			gravity: {y: 200},
 			debug: true
 		}
 	},
-	scene: [loaderScene, menuScene, gameScene,fightScene]
+	scene: [loaderScene, menuScene, gameScene, fightScene]
 };
-var game = new Phaser.Game(config); // <--- main game object, it have the scenes, more known as "this"
-
+const game = new Phaser.Game(config); // <--- main game object, it have the scenes, more known as "this"
