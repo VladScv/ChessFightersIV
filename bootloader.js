@@ -1,10 +1,9 @@
-var loaderScene = {
+const loaderScene = {
 	key: 'loader',
 	active: true,
 	preload: bootLoader,
 	create: bootCreate
 };
-
 
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX LOADER SCENE XXXXXXXXXXXXXXXX
@@ -18,6 +17,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 //-------------------------------------------------------------------------- LOAD FIRST ASSETS
 function bootLoader() {
 	//first load, loads all assets
+	// console.log(Fighter.fighterStateManager.values[0]);
 	this.load.image('sky', 'assets/sky.png');
 	this.load.image('space', 'assets/space3.png');
 	this.load.image('logo', 'phaser3-logo.png');
@@ -40,7 +40,7 @@ function bootLoader() {
 	this.load.spritesheet('_countdown','assets/countdown.png',{ frameWidth: 50, frameHeight: 50 });
 	//-----------------------------------------------------------------------loading screen
 	//LOAD SECUENTIALIMAGES
-	for (var i = 0; i < 5; i++) {
+	for (let i = 0; i < 5; i++) {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
@@ -89,7 +89,7 @@ function bootLoader() {
 		progressBar.clear();
 		progressBar.fillStyle(0xffffff, 1);
 		progressBar.fillRect(450, 330, 300 * value, 30);
-		percentText.setText(parseInt(value * 100) + '%');
+		percentText.setText((value * 100) + '%');
 	});
 				
 	this.load.on('fileprogress', function (file) {
