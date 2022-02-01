@@ -40,20 +40,18 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 /_/_/_/\_,_/\_,_/\__/  |__,__/_/\__/_//_/           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 */
 //CONST
-const SPAWN_PLAYER = 1200;
-const SPAWN_ENEMY = 1600;
-
+SPAWN_PLAYER = 1200;
+SPAWN_ENEMY = 1600;
+_gameState = ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN', 'GAMEOVER'];
 
 const gameStateManager = {
-	values: ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN', 'GAMEOVER'],
 	currentState: 0,
 	getCurrentState: function () {
-		let state = values[this.currentState];
-		return state
+		return _gameState[this.currentState]
 	},
 	setCurrentState: function (state) {
 		try {
-			this.currentState = values.indexOf(state);
+			this.currentState = _gameState.indexOf(state);
 		} catch (e) {
 			console.log('ERR_ state send not recognized:' + state + '\n' + e)
 		}
@@ -87,4 +85,4 @@ const config = {
 	},
 	scene: [loaderScene, menuScene, gameScene, fightScene]
 };
-const game = new Phaser.Game(config); // <--- main game object, it have the scenes, more known as "this"
+const game = new Phaser.Game(config); // <--- main game object, it has the scenes, more known as "this"
