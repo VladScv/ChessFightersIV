@@ -20,7 +20,7 @@ var menuScene = {
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
 function menuLoad() {
 	//-------------------------------------------------------------load more stuff
-	this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
+	//gameScene.background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
 
 }
 function menuCreate() {
@@ -31,7 +31,7 @@ function menuCreate() {
 
 	blackTeam_btn.setInteractive();
 		blackTeam_btn.on('pointerdown', function () {
-			gameScene.playerColor = BLACK;
+			gameScene.playerColor = false;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
 			game.scene.sleep('menu');
 		},this);
@@ -42,6 +42,7 @@ function menuCreate() {
 		whiteTeam_btn.on('pointerdown', function () {
 			gameScene.playerColor = WHITE;
 			game.scene.run('game');//run works as "resume" or "start" depending on current scene state
+
 			game.scene.sleep('menu');
 		},this);
 	whiteTeam_btn.on('pointerover', () => { whiteTeam_btn= this.add.image(this.cameras.main.width/2,  0, 'whiteTeam_btn_on').setOrigin(0)});

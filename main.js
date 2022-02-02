@@ -42,6 +42,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 //CONST
 SPAWN_PLAYER = 1200;
 SPAWN_ENEMY = 1600;
+CAM_SELECTION=600;
+CAM_FIGHT=1200;
+CAM_ENEMYQUEEN=1800;
 _gameState = ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN', 'GAMEOVER'];
 
 const gameStateManager = {
@@ -83,6 +86,6 @@ const config = {
 			debug: true
 		}
 	},
-	scene: [loaderScene, menuScene, gameScene, fightScene]
+	scene: [loaderScene, menuScene, gameScene, uiscene]
 };
-const game = new Phaser.Game(config); // <--- main game object, it has the scenes, more known as "this"
+game = new Phaser.Game(config); // <--- main game object, it has the scenes, more known as "this"

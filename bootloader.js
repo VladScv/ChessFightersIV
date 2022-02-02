@@ -22,8 +22,7 @@ function bootLoader() {
 	this.load.image('space', 'assets/space3.png');
 	this.load.image('logo', 'phaser3-logo.png');
 	this.load.image('redp', 'assets/redp.png');
-	//for loop with white/black and fighterType values
-
+//TODO for loop with white/black and fighterType values
 	this.load.spritesheet('ROOK_white_idle','assets/ROOK_white_idle.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.spritesheet('ROOK_white_walk','assets/ROOK_white_walk.png',{ frameWidth: 512, frameHeight: 383 });
 	this.load.spritesheet('ROOK_white_attack1','assets/ROOK_white_attack1.png',{ frameWidth: 512, frameHeight: 383 });
@@ -44,15 +43,14 @@ function bootLoader() {
 		this.load.image('logo'+i, 'phaser3-logo.png');
 	}
 
-	//Create loading bar boxes
+	//------------------------------------------Create loading bar boxes
 	let progressBox = this.add.graphics();
 	progressBox.fillStyle(0x222222, 0.8);
 	progressBox.fillRect(440, 320, 320, 50);
-	var progressBar = this.add.graphics();
-	var width = this.cameras.main.width;
-	var height = this.cameras.main.height;
-
-	var loadingText = this.make.text({
+	let progressBar = this.add.graphics();
+	let width = this.cameras.main.width;
+	let height = this.cameras.main.height;
+	let loadingText = this.make.text({
 		x: width / 2,
 		y: height / 2 - 80,
 		text: 'Loading...',
@@ -62,8 +60,7 @@ function bootLoader() {
 	}
 	});
 	loadingText.setOrigin(0.5, 0.5);
-
-	var percentText = this.make.text({
+	let percentText = this.make.text({
 		x: width / 2,
 		y: height / 2 + 10,
 		text: '0%',
@@ -73,8 +70,7 @@ function bootLoader() {
 		}
 	});
 	percentText.setOrigin(0.5, 0.5);
-
-	var fileText = this.make.text({
+	let fileText = this.make.text({
 		x: width / 2,
 		y: height / 2 + 80,
 		text: 'please wait... ',
@@ -110,16 +106,16 @@ function bootLoader() {
 
 //-------------------------------------------------------------------------- SPLASH SCREEN
 function bootCreate() {
-	var loadImage = this.add.image(0, 0, 'space').setOrigin(0); //Background
-	var particles = this.add.particles('redp'); //particles stuff
-	var emitter = particles.createEmitter({
+
+	let loadImage = this.add.image(0, 0, 'space').setOrigin(0); //Background
+	let particles = this.add.particles('redp'); //particles stuff
+	let emitter = particles.createEmitter({
 		speed: 100,
 		scale: { start: 1, end: 0 },
 		blendMode: 'ADD'
 	});
-
-	var logo = this.physics.add.image(400, 100, 'logo');
-	var clickText = this.make.text({
+	let logo = this.physics.add.image(400, 100, 'logo');
+	let clickText = this.make.text({
 		x: 1200 / 2,
 		y: 740-740 / 5 ,
 		text: 'click to start',
@@ -127,21 +123,18 @@ function bootCreate() {
 			font: '26px monospace',
 			fill: '#ffffff'
 		}
-	});
-	clickText.setOrigin(0.5, 0.5);
-
-	logo.setVelocity(100, 200);
-	logo.setBounce(1, 1);
-	logo.setCollideWorldBounds(true);
-
+	}).setOrigin(0.5, 0.5);
+	logo.setVelocity(100, 200).setBounce(1, 1).setCollideWorldBounds(true);
 	emitter.startFollow(logo);
-
-
 	//ADD A 'CLICK TO START'
 	this.input.once(Phaser.Input.Events.POINTER_DOWN, function () {
-		//this.children.removeAll(); not necessary, it cleans screen when changing SCENE
+		loadImage.destroy();
+		particles.destroy();
+		logo.destroy();
+		clickText.destroy();
+		game.scene.start('menu');
+		// this.children.removeAll();// not necessary, it cleans screen when changing SCENE
 		//coz we use "start" function, otherwise, "launch" will start a new scene WITH current scene
-		this.scene.start('menu');
-	}, this); // <-- "this" means scope = game
+	}, game); // <-- "this" means scope = game
 }
 
