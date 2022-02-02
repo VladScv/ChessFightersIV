@@ -1,25 +1,16 @@
 
 gameScene = {
+	//------------- default
 	key: 'game',
 	active: false,  //This makes scenes be unactive until we activate them
 	visible: false,
-	movingCamera:false,
+	//-------------
 	playerTeam:null,
 	iaTeam:null,
-	gameState: 'SELECTFIGHTER',
 	background:null,
 	playerColor:null,
 	inputKeys:[],
 	selectFighter_txt:'',
-	currentFighter:null,
-	iaFighter:null,
-	fightingQueen:false,
-	gameStarted: false,
-	playerWins:false, 
-	fixCamPoint:800,
-	countdown:null,
-	playerAttack_collider:null,
-	iaAttack_collider:null,
 	preload: preload,
 	create: create,
 	update: update
@@ -38,21 +29,23 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 buttons = [];
 
 function preload() {
+
+	this.scene.launch('uiscene');
 	this.gameState ='SELECTFIGHTER';
-	gameScene.background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
-	gameScene.background.flipX=gameScene.playerColor;
-	this.input.keyboard.on('keydown-SPACE', function() { gameScene.movingCamera = true;},this);
-	this.input.keyboard.on('keyup-SPACE', function() { gameScene.movingCamera = false;},this);
-	
-	
+	this.background = this.add.image( 0,  this.cameras.main.height/2, 'bg').setOrigin(0,0.5);
+	this.background.flipX=gameScene.playerColor;
+
 }
 
 function create() {
 //--------------------------------------------------------------Create Screen text
-	mainPhysics = this.physics;
-	// const countdown = this.add.sprite('countdown')
+	this.camWidth=this.cameras.main.width;
+	this.camHeight=this.cameras.main.height;
+	this.mainCamera= this.cameras.main;
+	this.mainPhysics = this.physics;
+	this.shadowTween=null;
 	this.selectFighter_txt = [this.make.text({
-		x: this.cameras.main.width / 4,
+		x: this.camWidth/ 4,
 		y: 50,
 		text: 'Select a Fighter!',
 		style: {
@@ -61,7 +54,7 @@ function create() {
 	}
 	}),
 	this.make.text({
-		x: this.cameras.main.width / 2,
+		x: this.camWidth / 2,
 		y: 50,
 		text: '      Choose well ...\n \n '+
 		'      If a fighter survives \n'+
@@ -104,11 +97,18 @@ function create() {
 	this.playerTeam = new FighterTeam(gameScene.playerColor,this,this.physics,true);
 	this.iaTeam = new FighterTeam(!gameScene.playerColor,this,this.physics,false)
 
+
 }
 
 //-----------------------------------------------------UPDATE FUNCTION!
 function update() {
+
+
+
+
+
 	switch (gameStateManager.getCurrentState()){
+
 		case 'SELECTFIGHTER':
 			if(gameScene.currentFighter!=null){
 				gameScene.currentFighter.sprite.destroy();
@@ -122,9 +122,9 @@ function update() {
 				goTo_queen();
 			}
 		case 'FIGHT':
+
 			if(gameScene.gameStarted){
 				//if(!gameScene.playerAttack_collider!=='null'){
-					console.log('afsafdsafsdafds')
 					//this.physics.add.collider(gameScene.currentFighter.sprite,gameScene.iaFighter.sprite);
 
 									
@@ -141,10 +141,16 @@ function update() {
 					// );
 				//}
 				updateFight();
-			}else{ 
+			}else{
+
+				this.children.bringToTop(this.playerTeam.currentFighter.getSprite())
 				if(gameScene.movingCamera){
-					moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
+					//moveMainCamera_to(this.cameras.main,gameScene.fixCamPoint,4);
 				}else{
+
+					this.mainCamera.pan(1200, 370, 3000, 'Sine.easeInOut');
+					//
+					// this.cameras.main.centerOn(1200, 370);
 					if((typeof countdown !== 'undefined')){
 					
 					}
@@ -185,6 +191,11 @@ function update() {
 			break;
 		default: break;
 	}
+	try{
+		this.playerTeam.update();
+	}catch (e) {
+		console.log("err playerTeam="+this.playerTeam)
+	}
 }
 
 
@@ -206,19 +217,7 @@ function updateFight(){
 	//}
 
 }
-function check_enemyHit() {
-	// if((enemyFighter.attackBox.collides(playerFighter))&&( playerFighter.fighterState!= DEFENDING)){
-	// 	playerFighter.health -= enemyFighter.damage*modifier; 
-	// 	playerFighter.fighterState= INMUNE;
-	// 	playerFighter.setAnimation('hit');
-	// 	playerFighter.on.animationEnd.fighterState = idle;
-	// 	return true;
-	// }
-	return false;
-}
 
-function attack(){ 
-}
 
 //------------------------------------------------------------------INPUT MANAGEMENT
 
@@ -255,24 +254,6 @@ function processInput(){
 		if(gameScene.inputKeys.attack1_key.isDown){
 			fighter.fighterState='FIGHTING';
 			fighter.sprite.anims.play('attack1',true)
-				// if(fighter.fighterState=='FIGHTING'){
-				// 	attackBox= mainPhysics.add.sprite(gameScene.currentFighter.sprite.x+150,gameScene.currentFighter.sprite.y,'select_btn').setOrigin(0.5,0.5)
-				// 	attackBox.body.setAllowGravity(false);
-				// 	gameScene.playerAttack_collider=mainPhysics.add.collider(
-				// 		attackBox,
-				// 		gameScene.iaFighter.sprite,
-				// 		function(_attack,fighter){
-				// 			if(gameScene.iaFighter.fighterState!='INMUNE'||gameScene.iaFighter.fighterState!='DEFENDING'){
-				// 				// gameScene.iaFighter.hit();
-				// 				fighter.anims.play('hit',true);
-				// 			}
-				// 			_attack.destroy();
-				// 		}
-				// 	);
-					// attackBox.destroy();
-				// }
-			
-			// fighter.attackBox.destroy();
 		}else if(gameScene.inputKeys.attack2_key.isDown){
 			
 			fighter.sprite.anims.play('attack2',true);
@@ -334,13 +315,4 @@ function moveMainCamera_to(camera,xPoint,speed){
 	}else{
 		gameScene.movingCamera=false;
 	}
-}
-function goTo_selection(){
-	buttons.forEach(function (button) {
-		if (button != null) {
-			button.disableInteractive();
-		}
-	});
-	gameScene.fixCamPoint=600;
-}
-function goTo_queen(){gameScene.fixCamPoint=1600;}
+}//Deprecated
