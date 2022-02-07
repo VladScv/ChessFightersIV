@@ -1,120 +1,107 @@
-const uiscene = {
-    values:['selectFighter','countdown','fight','fightQueen','isDead','wins','gameOver'],
-    key: 'uiscene',
-    active: false,  //This makes scenes be unactive until we activate them
-    visible: false,
-    player_healthBar: null,
-    enemy_healthBar: null,
-    uiStateManager:{
-        currentState: 0,
-        getCurrentState: function () {
-            return values[this.currentState]
-        },
-        setCurrentState: function (state) {
-            try {
-                this.currentState = values.indexOf(state);
-            } catch (e) {
-                console.log('ERR_ state send not recognized:' + state + '\n' + e)
+class UiScene extends Phaser.Scene {
+    constructor() {
+        super('uiscene');
+        this.key = 'uiscene';
+        this.active = false;  //This makes scenes be unactive until we activate them
+        this.visible = false;
+        this.player_healthBar = null;
+        this.enemy_healthBar = null;
+        this.values = ['selectFighter', 'countdown', 'fight', 'fightQueen', 'isDead', 'wins', 'gameOver'];
+        this.selectFighter_txt = '';
+        this.pauseText='';
+        this.barActivate = false;
+    }
+
+    init(data){
+        this.gameManager = data;
+    }
+
+    preload() {
+        this.mainCamera = this.cameras.main;
+        this.camWidth = this.mainCamera.width;
+        this.camHeight = this.mainCamera.height;
+    }
+
+    create() {
+
+        this.keyPause= this.input.keyboard.addKey('P');
+        this.keyPause.on('down',function(){gameManager.uiscene.pauseGame();});
+        this.pauseText= this.make.text({
+            x: this.camWidth / 2,
+            y: this.camHeight / 2,
+            text: 'PAUSE',
+            style: {
+                font: '42px monospace',
+                fill: '#000000'
             }
-        },
-        next: function () {
-            this.currentState += 1;
-            if (this.currentState >= values.length()) {this.currentState = 0;}
-        },
+        }).setOrigin(0.5,0.5);
+        this.pauseText.setVisible(false)
+        this.selectFighter_txt = [this.make.text({
+            x: this.camWidth / 4,
+            y: 50,
+            text: 'Select a Fighter!',
+            style: {
+                font: '42px monospace',
+                fill: '#000000'
+            }
+        }),
+            this.make.text({
+                x: this.camWidth / 2,
+                y: 50,
+                text: '      Choose well ...\n \n ' +
+                    '      If a fighter survives \n' +
+                    '       the first enemy, he\'ll \n' +
+                    '       have a chance to defeat\n' +
+                    '       the enemy Queen.\n\n' +
+                    '       God Save the Queen!!! \n\n' +
+                    '             CURSORS: Move\n' +
+                    '             Z: Quick Attack \n' +
+                    '             X: Heavy Attack \n' +
+                    '             C: Defense\n' +
+                    '             P: Pause',
+                style: {
+                    font: '28px monospace',
+                    fill: '#ffffff'
+                }
+            })];
+        this.selectFighter_txt[0].setOrigin(0.5, 0.5);
+        this.selectFighter_txt[1].setOrigin(0, 0);
+        this.player_healthBar = new HealthBar(this, 100, 40, true);
+        // this.player_healthBar.bar.sprite.setActive(false).setVisible(false);
+        this.enemy_healthBar = new HealthBar(this, 800, 40, false);
+    }
 
-    },
-
-    preload: uiPreload,
-    create: uiCreate,
-    update: uiUpdate
-};
-
-
-function uiPreload(){
-}
-
-function uiCreate(){
-
-    this.player_healthBar = new HealthBar(this, 100, 40,true);
-    // this.player_healthBar.bar.sprite.setActive(false).setVisible(false);
-    this.enemy_healthBar= new HealthBar(this,800,40,false);
-}
-
-function uiUpdate(){
-
+    update() {
+       if(this.barActivate){
+           //TODO update health bars?
+       }
+       if(this.keyPause.isDown){
+           this.pauseGame();
+       }
+    }
+    pauseGame(){
+        console.log('pause pulsed!')
+        let toggle= (this.gameManager.getCurrentState()!=='PAUSE');
+        console.log(toggle)
+        this.gameManager.pause(toggle);
+        this.pauseText.setVisible(toggle);
+    }
+    selectFighter_screen(activate){
+        //TODO group all memembers for fightUi and selectUI
+        this.player_healthBar.activated=!activate;
+        this.enemy_healthBar.activated=!activate;
+        this.selectFighter_txt[0].setVisible(activate);
+        this.selectFighter_txt[1].setVisible(activate);
+       //TODO set visible all the elements
+    }
+    assignFighters(player,enemy){
+        this.player_healthBar.setFighter(player);
+        this.enemy_healthBar.setFighter(enemy);
+        this.selectFighter_screen(false);
+    }
 }
 //-----------------------------------------------------HealthBar class
 // from: https://labs.phaser.io/edit.html?src=src/game%20objects/graphics/health%20bars%20demo.js&v=3.55.2
-class HealthBar {
 
-    constructor (scene, x, y,isPlayer)
-    {
-        this.bar = new Phaser.GameObjects.Graphics(scene);
-        this.x = x;
-        this.y = y;
-        this.value = 100;
-        this.p = 233/100;
-        this.fighter = null;
-        this.activated = false;
-        this.flip=!isPlayer;
-        scene.add.existing(this.bar);
-        this.draw()
-    }
-    assignFighter(fighter){
-        this.fighter =fighter;
-    }
-    activateBar(){
-        if(this.fighter!==null) {
-            this.bar.sprite.setVisible(true)
-            this.activated = true;
-            this.draw();
-        }
-    }
 
-    healthFactor(){return this.fighter.health/this.value;}
-    deactivateBar(){}
-    decrease (amount)
-    {
-        this.value -= amount* this.healthFactor();
 
-        if (this.value < 0)
-        {
-            this.value = 0;
-        }
-
-        this.draw();
-
-        return (this.value === 0);
-    }
-
-    draw ()
-    {
-        this.bar.clear();
-        if(!this.isActive()) {
-
-            //  BG
-            this.bar.fillStyle(0x000000);
-            this.bar.fillRect(this.x, this.y, 240,32 );
-
-            //  Health
-
-            this.bar.fillStyle(0xffffff);
-            this.bar.fillRect(this.x + 4, this.y + 4, 232, 24);
-
-            if (this.value < 100) {
-                this.bar.fillStyle(0xff0000);
-            } else {
-                this.bar.fillStyle(0x00ff00);
-            }
-
-            let d = Math.floor(this.p * this.value);
-
-            this.bar.fillRect(this.x + 4, this.y + 4, d, 24);
-        }else{
-        }
-    }
-
-    isActive() {
-        return this.activated;
-    }
-}
