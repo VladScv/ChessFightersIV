@@ -45,32 +45,13 @@ SPAWN_ENEMY = 1600;
 CAM_SELECTION=600;
 CAM_FIGHT=1200;
 CAM_ENEMYQUEEN=1800;
-_gameState = ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN', 'GAMEOVER'];
+_gameState = ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN','MATCHOVER', 'GAMEOVER'];
 
-const gameStateManager = {
-	currentState: 0,
-	getCurrentState: function () {
-		return _gameState[this.currentState]
-	},
-	setCurrentState: function (state) {
-		try {
-			this.currentState = _gameState.indexOf(state);
-		} catch (e) {
-			console.log('ERR_ state send not recognized:' + state + '\n' + e)
-		}
-	},
-	next: function () {
-		this.currentState+=1;
-		if(this.currentState>=values.length()){this.currentState=0;}
-	},
-	update(){
-	}
-};
 
 /*
  *  PHASER GAME CONFIGURATION
 */
-
+const gameManager = new GameManager();
 const config = {
 	type: Phaser.AUTO,
 	scale: {
@@ -82,10 +63,11 @@ const config = {
 	physics: {
 		default: 'arcade',
 		arcade: {
-			gravity: {y: 200},
+			gravity: {y: 1600 },
 			debug: true
 		}
 	},
-	scene: [loaderScene, menuScene, gameScene, uiscene]
+	scene: [gameManager.loaderScene, gameManager.menuScene, gameManager.gameScene, gameManager.uiscene]
 };
-game = new Phaser.Game(config); // <--- main game object, it has the scenes, more known as "this"
+const game = new Phaser.Game(config); // <--- main game object, it has the scenes, more known as "this"
+gameManager.setGame(game);
