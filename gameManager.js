@@ -58,8 +58,15 @@ class GameManager {
         this.uiscene.selectFighter_screen(true);
     }
     fighterSelected(fighter){
-        this.gameScene.prepareCountdown();
-        this.uiscene.assignFighters(fighter,this.gameScene.ia_system.selectNext_iaFighter(this.gameScene.iaTeam))
+        let enemy= this.gameScene.ia_system.selectNext_iaFighter(this.gameScene.iaTeam);
+        enemy.activateFighter(enemy,false);
+        this.uiscene.assignFighters(fighter,enemy)
+        this.gameScene.playerTeam.currentFighter.moveTo(800);
+        this.gameScene.iaTeam.currentFighter.moveTo(1600);
+        this.gameScene.moveCamera_to(1200,2000)
+        this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.sprite, this.gameScene.iaTeam.currentFighter.sprite);
+        this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.hitBox.box, this.gameScene.iaTeam.currentFighter.sprite.body);
+        this.gameScene.physics.add.collider(this.gameScene.iaTeam.currentFighter.hitBox.box, this.gameScene.playerTeam.currentFighter.sprite.body);
     }
     update(){
     }
@@ -111,21 +118,21 @@ class FighterManager{
         return this.state_values[this.currentState];
     }
     setCurrentState(state) {
-        try {
+        // try {
             if(this.getCurrentState()==='defense'&& state!=='defense'){
                 this.fighter.sprite.play('defense_end',true);
                 this.currentState= this.state_values.indexOf('idle');
             }else {
                 if(state==='attack1'||state==='attack2'){
-                    this.fighter.hitBox.activate((state==='attack1'),!this.fighter.isRightFaced())
+                    this.fighter.hitBox.activate((state==='attack1'),!this.fighter.isRightFaced(),this.fighter.getEnemy().sprite);
                     this.attackCounter=0;
                 }
                 this.currentState = this.state_values.indexOf(state);
                 this.fighter.sprite.play(this.anim_values[this.currentState],true);//FIXME
             }
-        } catch (e) {
-            console.log('ERR_ state send not recognized:' + state + '\n' + e)
-        }
+        // } catch (e) {
+        //     console.log('ERR_ state send not recognized:' + state + '\n' + e)
+        // }
 
     }
     whenAnimationEnds(){

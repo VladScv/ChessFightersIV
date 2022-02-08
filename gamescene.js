@@ -79,6 +79,7 @@ class GameScene extends Phaser.Scene {
 			});
 		}
 		this.playerTeam.update();
+		this.iaTeam.update();
 	}
 //------------------------------------------------------------------INPUT MANAGEMENT
 	pause(){
@@ -87,11 +88,8 @@ class GameScene extends Phaser.Scene {
 	moveCamera_to(xPoint,speed){
 		this.mainCamera.pan(xPoint, 370, speed, 'Sine.easeInOut');
 	}
-	prepareCountdown(){
-		this.iaTeam.setCurrentFighter(this.ia_system.selectNext_iaFighter(this.iaTeam),this.iaTeam);
-		this.physics.moveTo(this.playerTeam.currentFighter.sprite,1200,300,500);
-		this.physics.moveTo(this.iaTeam.currentFighter.sprite,1200,300,500);
-		this.moveCamera_to(1200,3000)
+	round1_prepare(){
+
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
