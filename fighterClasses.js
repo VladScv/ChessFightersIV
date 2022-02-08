@@ -21,15 +21,20 @@ class HitBox {
         this.directionFlipped=false;
         this.route=[];
         this.currentFrame=0;
+        this.enemy=null;
     }
     deactivate() {
         // this.box.setActive(false).setVisible(false);
         this.active=false;
-        this.setPosition(0,0)
+        this.box.body.x=0;
+        this.box.body.y=0;
     }
-    activate(isAttack1, isLeft){
-        this.box.setActive(true).setVisible(false);
+    activate(isAttack1, isLeft,enemy){
+        this.box.setActive(true).setVisible(true);
         this.directionFlipped=isLeft;
+        this.physics.add.collider(this.box,enemy,function(){
+            console.log('say hi!!!!!!!!!!');
+        })
         if(isAttack1){
             this.route=[
                     {x:0,y:-100},
@@ -70,9 +75,8 @@ class HitBox {
                 if(flipped<0){  this.box.body.x-=100;}
                 this.box.body.y = fighter.sprite.y + this.route[counter].y-(fighter.weight*10);
             }
-            // currentFrame++
         }else{
-            this.setPosition(0,0)
+
         }
     }//TODO
     setPosition(x,y) {
@@ -196,7 +200,7 @@ class Fighter{
         this.hitBox = new HitBox(0,0,physics);
     }
     //-----------------------------------set interaction
-    {
+    if(this.team.isPlayer){
         this.sprite.setInteractive();
         this.sprite.input.hitArea.setTo(180, 30, 180, 350);
         this.sprite.on('pointerdown', function (a,b){
@@ -211,7 +215,7 @@ class Fighter{
             } catch (e) { }
         });
         function activateThisFighter(fighter) {
-            fighter.activateFighter(fighter)
+            fighter.activateFighter(fighter,true)
         }
     }
     //-----------------------------------set animations
@@ -268,11 +272,15 @@ class Fighter{
     }
     ////////////////////////////////////////////////////////////////////////////
     //-------------------------------------Internal Functions
-    activateFighter(fighter) {
+    activateFighter(fighter,player) {
         this.fighterStateManager = new FighterManager(this);
         fighter.active=true;
-        fighter.team.setCurrentFighter(fighter,fighter.team);
-        gameManager.fighterSelected(fighter)
+        if(player){
+            fighter.team.setCurrentFighter(fighter, fighter.team);
+            gameManager.fighterSelected(fighter)
+        }else{
+            fighter.team.setCurrentFighter(fighter,fighter.team);
+        }
 
     }
     getPosition(){return {x:this.sprite.x,y:this.sprite.y}}
@@ -331,6 +339,15 @@ class Fighter{
     isTouchingDown(){
         return this.sprite.body.touching.down;
     }
+    moveTo(x){
+        this.moving=true;
+        this.moveObjective=x;
+        this.fighterStateManager.setCurrentState('walk');
+        this.locked=true;
+
+    }
+    getEnemy(){return (this.team.isPlayer)?(this.team.gameScene.iaTeam.currentFighter):(this.team.gameScene.playerTeam.currentFighter);
+    }
     ////////////////////////////////////////////////////////////////////////////
     //------------------------------------------------------------------- UPDATE
     slowDown(){
@@ -342,62 +359,64 @@ class Fighter{
         }
     }
     processInput(keys) {
-        switch (this.fighterStateManager.getCurrentState()) {
-            case 'walk':
-                if(!keys.left&& !keys.right){
-                    this.fighterStateManager.setCurrentState('idle');
-                }
-            case 'idle':
-                if (keys.defense) {
-                    // this.sprite.anims.play('defense_start', false);
-                    this.fighterStateManager.setCurrentState('defense');
-                } else if (keys.attack1) {
-                    // this.sprite.anims.play('attack1', true)
-                    this.fighterStateManager.setCurrentState('attack1');
-                } else if (keys.attack2) {
-                    // this.sprite.anims.play('attack2', true)
-                    this.fighterStateManager.setCurrentState('attack2');
-                } else {
+       if(!this.locked) {
+            switch (this.fighterStateManager.getCurrentState()) {
+                case 'walk':
+                    if (!keys.left && !keys.right) {
+                        this.fighterStateManager.setCurrentState('idle');
+                    }
+                case 'idle':
+                    if (keys.defense) {
+                        // this.sprite.anims.play('defense_start', false);
+                        this.fighterStateManager.setCurrentState('defense');
+                    } else if (keys.attack1) {
+                        // this.sprite.anims.play('attack1', true)
+                        this.fighterStateManager.setCurrentState('attack1');
+                    } else if (keys.attack2) {
+                        // this.sprite.anims.play('attack2', true)
+                        this.fighterStateManager.setCurrentState('attack2');
+                    } else {
                         if (keys.left) {
                             if (this.sprite.body.velocity.x > (-180 - (this.speed * 40))) {
-                                this.sprite.body.velocity.x -= 20*this.speed;
+                                this.sprite.body.velocity.x -= 20 * this.speed;
                             } else {
                                 this.sprite.body.velocity.x = -200 - (this.speed * 40)
                             }
                             this.fighterStateManager.setCurrentState('walk');
                             this.sprite.flipX = true;
-                        }else if (keys.right) {
+                        } else if (keys.right) {
                             // this.sprite.anims.play('walk', true);
                             if (this.sprite.body.velocity.x < 180 + (this.speed * 40)) {
-                                this.sprite.body.velocity.x += 20*this.speed;
+                                this.sprite.body.velocity.x += 20 * this.speed;
                             } else {
                                 this.sprite.body.velocity.x = 200 + (this.speed * 40)
                             }
                             this.fighterStateManager.setCurrentState('walk');
                             this.sprite.flipX = false;
                         }
-                    if (this.sprite.body.touching.down) {
-                        if (keys.up) {
-                            this.sprite.setVelocityY(-960+(this.weight*10));
+                        if (this.sprite.body.touching.down) {
+                            if (keys.up) {
+                                this.sprite.setVelocityY(-960 + (this.weight * 10));
+                            }
+                        } else {
                         }
-                    } else {
                     }
-                }
-                break;
-            case 'attack1':
+                    break;
+                case 'attack1':
 
-                break;
-            case 'attack2':
-                break;
-            case 'defense':
-                if (!keys.defense) {
-                    this.fighterStateManager.setCurrentState('idle');
-                }
-                break;
-            case 'hit':
-                break;
-            default:
-                break;
+                    break;
+                case 'attack2':
+                    break;
+                case 'defense':
+                    if (!keys.defense) {
+                        this.fighterStateManager.setCurrentState('idle');
+                    }
+                    break;
+                case 'hit':
+                    break;
+                default:
+                    break;
+            }
         }
     }
     update(){
@@ -415,6 +434,20 @@ class Fighter{
                  console.log('animation not set')
              }
         }
+         if (this.moving){
+             let pos =this.sprite.x;
+             let val= 5*this.speed;
+
+             if(this.moveObjective>pos){
+                 this.sprite.body.x +=((val<(this.moveObjective-pos))?(val):(this.moveObjective-pos));
+             }else if(this.moveObjective<pos){
+                 this.sprite.body.x-=((val<(pos-this.moveObjective))?(val):(pos-this.moveObjective));
+             }else {
+                 this.moving=false;
+                 this.moveObjective=null;
+                 this.locked=false;
+             }
+         }
     }
 }
 
