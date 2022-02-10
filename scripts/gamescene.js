@@ -64,6 +64,12 @@ class GameScene extends Phaser.Scene {
 		this.iaTeam = new FighterTeam(!this.playerColor, this, this.physics, false);
 		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.gameManager.selectFighter_screen();
+		gameManager.eventsCenter.on('playerFighterArrived',function (fighter) {
+			gameManager.uiscene.startCountdown()
+		},this)
+		gameManager.eventsCenter.on('countdown_end',function (fighter) {
+			this.playerTeam.currentFighter.locked=false;
+		},this)
 	}
 
 //-----------------------------------------------------UPDATE FUNCTION!

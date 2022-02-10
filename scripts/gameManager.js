@@ -65,7 +65,7 @@ class GameManager {
         this.uiscene.assignFighters(fighter,enemy)
         this.gameScene.playerTeam.currentFighter.moveTo(800);
         this.gameScene.iaTeam.currentFighter.moveTo(1600);
-        this.gameScene.moveCamera_to(1200,2000)
+        this.gameScene.moveCamera_to(1200,1500)
         this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.sprite, this.gameScene.iaTeam.currentFighter.sprite);
     }
     pause(toggle){
@@ -123,7 +123,6 @@ class FighterManager{
                     this.currentState = this.state_values.indexOf('idle');
                 } else {
                     if (state === 'attack1' || state === 'attack2') {
-                        console.log(state)
                         let enemy = this.fighter.getEnemy()
                         let fighter = this.fighter;
                         fighter.hitBox.activate((state === 'attack1'), !fighter.isRightFaced(), enemy);

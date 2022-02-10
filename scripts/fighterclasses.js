@@ -360,6 +360,7 @@ class Fighter{
         }
         this.locked=true;
 
+
     }
     getEnemy(){return (this.team.isPlayer)?(this.team.gameScene.iaTeam.currentFighter):(this.team.gameScene.playerTeam.currentFighter);
     }
@@ -377,7 +378,7 @@ class Fighter{
        if(!this.locked) {
             switch (this.fighterStateManager.getCurrentState()) {
                 case 'walk':
-                    if (!keys.left && !keys.right) {
+                    if (!keys.left && !keys.right&&!this.moving) {
                         this.fighterStateManager.setCurrentState('idle');
                     }
                 case 'idle':
@@ -447,16 +448,26 @@ class Fighter{
 
              if (this.moving) {
                  let pos = this.sprite.x;
-                 let val = 5 * this.speed;
+                 let val = 2 * this.speed;
 
                  if (this.moveObjective > pos) {
                      this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
+                     this.anims.play('walk',true);
                  } else if (this.moveObjective < pos) {
                      this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
+                     this.anims.play('walk',true);
                  } else {
+                     this.anims.play('idle',true);
                      this.moving = false;
                      this.moveObjective = null;
-                     this.locked = false;
+
+                     // this.locked=false;
+                     if(this.team.currentFighter===this) {
+                         let fighterName=((this.team.isPlayer)?('playerFighter'):('iaFighter'));
+                         console.log(fighterName);
+                         gameManager.eventsCenter.emit(fighterName+'Arrived',this.getFighter());
+                     }
+
                  }
              }
          }
