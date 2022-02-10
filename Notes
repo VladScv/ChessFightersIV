@@ -1,0 +1,62 @@
+
+var source;
+var target = new Phaser.Math.Vector2();
+source = this.physics.add.image(100, 300, 'flower');
+
+this.input.on('pointerdown', function (pointer) {
+
+    target.x = pointer.x;
+    target.y = pointer.y;
+
+    // Move at 200 px/s:
+    this.physics.moveToObject(source, target, 200);
+    var distance = Phaser.Math.Distance.Between(source.x, source.y, target.x, target.y);
+
+
+}, this);
+
+
+//create personalizedBounds
+     var block2 = this.physics.add.image(400, 350, 'block');
+     block2.setVelocity(100, 200);
+     block2.setBounce(1, 1);
+     block2.setCollideWorldBounds(true);
+//-------------------------------------------------------Phaser.Geom.Rectangle(x, y, w, h))
+     block2.body.setBoundsRectangle(new Phaser.Geom.Rectangle(200, 150, 400, 300))
+
+
+//-----global object listeners
+scene.input.on('gameobjectdown', function(pointer, gameObject, event){ /* ... */ });
+scene.input.on('gameobjectup', function(pointer, gameObject, event){ /* ... */ });
+scene.input.on('gameobjectmove', function(pointer, gameObject, event){ /* ... */ });
+scene.input.on('gameobjectover', function(pointer, gameObject, event){ /* ... */ });
+scene.input.on('gameobjectout', function(pointer, gameObject, event){ /* ... */ });
+
+//---------deactivate sprites
+sprite.setActive(false).setVisible(false);
+                -or
+group.killAndHide(sprite);
+  disableFighters_clck(selectedFighterIndex){
+        if(this.isPlayer){
+            let i = 0;
+            this.fighters.forEach(function (fighter) {
+                if (fighter != null) {
+                    fighter.disableInteractive();
+                }
+            });
+
+        }
+    }
+
+
+
+    var shadow;
+    var offset = new Phaser.Point(10, 8);
+
+    shadow = game.add.sprite(game.world.centerX, game.world.centerY, 'hotdog');
+    shadow.anchor.set(0.5);
+    shadow.tint = 0x000000;
+    shadow.alpha = 0.6;
+
+    sprite = game.add.sprite(game.world.centerX, game.world.centerY, 'hotdog');
+    sprite.anchor.set(0.5);
