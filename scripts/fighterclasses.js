@@ -318,13 +318,21 @@ class Fighter{
     //------------------------------------------------------------------- ACTIONS
     pushEnemy(directionFrom){
     }//TODO
-    hit(damage,directionFrom,isAttack1){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
+    hit(damage,directionFrom,isAttack1,fighter){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
         if(this.fighterStateManager.getCurrentState()==='defense'){
-
-        }else if(this.fighterStateManager.getCurrentState()!=='hit'){
+            this.locked=false;
+            fighter.locked=true;
+            this.team.gameScene.time.delayedCall(800, function (){
+                fighter.locked=false;
+            }, this);
             let totalDamage = damage*((isAttack1)?(10):(15));
-            console.log('isAttack1: '+(isAttack1))
-            console.log(this.fighterStateManager.getCurrentState())
+
+            this.addVelocityX(((-1*directionFrom)*(BOUNCE_FORCE+(totalDamage)))/2);
+            fighter.addVelocityX((directionFrom)*(BOUNCE_FORCE+(totalDamage)));
+        }else if(this.fighterStateManager.getCurrentState()!=='hit'){
+            this.locked=true;
+            fighter.locked=true;
+            let totalDamage = damage*((isAttack1)?(10):(15));
             gameManager.eventsCenter.emit('hit',totalDamage,this.team.isPlayer);
             this.fighterStateManager.setCurrentState('hit');
             this.setFlip((directionFrom<0));

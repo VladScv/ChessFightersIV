@@ -11,10 +11,25 @@ class IA_System {
         this.dangerAlert=false;
         this.hits=0;
         this.goodVibe=false;
+        this.playerFighter=null;
+        this.botFighter=null;
 
     }
     iaSystem_update(){
-
+        if(this.playerFighter!==null) {
+            return {
+                left: (this.playerFighter.getPosition().x < this.botFighter.getPosition().x - 160),
+                right: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x),
+                up: false,
+                attack1: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x - 160 && this.playerFighter.getPosition().x < this.botFighter.getPosition().x + 160),
+                attack2: false,
+                defense: (this.playerFighter.fighterStateManager.getCurrentState() === 'attack1')
+            }
+        }
+    }
+    assignFighters(bot,player){
+        this.botFighter=bot;
+        this.playerFighter=player;
     }
     selectNext_iaFighter(team){
         this.guessPlayerOptions(this.botAcctitude);
@@ -23,7 +38,6 @@ class IA_System {
         while (team.getFighters()[rand]===null){
             rand-=1;
         }//FIXME---------------------------------------------------------------------------could be a loop when only remains the queen
-        this.botFighter=(team.getFighters())[rand];
         return (team.getFighters())[rand];
     }
     guessPlayerOptions(acctitude){

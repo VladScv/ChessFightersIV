@@ -72,6 +72,7 @@ class GameScene extends Phaser.Scene {
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
 			this.addFightersColliders();
+			this.ia_system.assignFighters(this.iaTeam.currentFighter, this.playerTeam.currentFighter)
 			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){
 				gameManager.setCurrentState('FIGHT1');
 			}else{
@@ -105,6 +106,7 @@ class GameScene extends Phaser.Scene {
 				attack2: this.inputKeys.attack2_key.isDown,
 				defense:this.inputKeys.defense_key.isDown
 			});
+			this.iaTeam.currentFighter.processInput(this.ia_system.iaSystem_update());
 		}
 		this.playerTeam.update();
 		this.iaTeam.update();

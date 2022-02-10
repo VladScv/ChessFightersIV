@@ -127,10 +127,9 @@ class FighterManager{
                         fighter.hitBox.activate((state === 'attack1'), !fighter.isRightFaced(), enemy);
                         fighter.physics.add.collider(fighter.hitBox.box,enemy.sprite,function(box,enemySprite){
                             fighter.hitBox.deactivate();
-                            enemy.hit(fighter.damage,((fighter.getPosition().x<enemy.getPosition().x)?(-1):(1)),(fighter.fighterStateManager.getCurrentState()==='attack1'));
+                            enemy.hit(fighter.damage,((fighter.getPosition().x<enemy.getPosition().x)?(-1):(1)),(fighter.fighterStateManager.getCurrentState()==='attack1'),fighter);
                             fighter.fighterStateManager.setCurrentState('idle');
-                            enemy.locked=true;
-                            fighter.locked=true;
+
                         })
                     }
                     this.currentState = this.state_values.indexOf(state);

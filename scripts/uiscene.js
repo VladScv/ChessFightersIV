@@ -139,7 +139,6 @@ class UiScene extends Phaser.Scene {
         this.gameManager.pause(true);
         this.pauseText[0].setVisible(true);
         this.pauseText[1].setVisible(true);
-        this.startCountdown();
         this.input.once(Phaser.Input.Events.POINTER_DOWN, function () {
             this.gameManager.pause(false);
             this.pauseText[0].setVisible(false);
