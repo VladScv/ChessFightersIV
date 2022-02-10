@@ -92,7 +92,7 @@ class LoaderScene extends Phaser.Scene {
 			progressBar.clear();
 			progressBar.fillStyle(0xffffff, 1);
 			progressBar.fillRect(450, 330, 300 * value, 30);
-			percentText.setText((value * 100) + '%');
+			percentText.setText(''+Math.floor(value * 100) + '%');
 		});
 
 		this.load.on('fileprogress', function (file) {

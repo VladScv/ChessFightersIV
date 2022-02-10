@@ -92,7 +92,15 @@ class GameScene extends Phaser.Scene {
 				this.playerTeam.currentFighter.moveTo(1300)
 				this.moveCamera_to(1800,1200)
 			}else{
-
+				//TODO enemy attacks player queen
+			}
+		},this);
+		gameManager.eventsCenter.on('FIGHT2_end',function (playerWins) {
+			gameManager.setCurrentState('MATCH-OVER');
+			if(playerWins){
+				//TODO MATCH-OVER / GAME-OVER
+			}else{
+				//TODO MATCH-OVER / GAME-OVER
 			}
 		},this)
 
