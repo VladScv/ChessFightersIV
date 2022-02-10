@@ -18,13 +18,13 @@ class IA_System {
     }
     selectNext_iaFighter(team){
         this.guessPlayerOptions(this.botAcctitude);
-        let rand = 1
+        let rand = 4
         console.log('random:'+rand)
         while (team.getFighters()[rand]===null){
-            rand+=1;
+            rand-=1;
         }//FIXME---------------------------------------------------------------------------could be a loop when only remains the queen
         this.botFighter=(team.getFighters())[rand];
-        return (team.getFighters())[rand];
+        return (team.getFighters())[1];
     }
     guessPlayerOptions(acctitude){
 

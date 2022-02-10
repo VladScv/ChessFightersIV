@@ -1,7 +1,7 @@
 //DEFINITIONS
 
 
-BOUNCE_FORCE=0.2;
+BOUNCE_FORCE=200;
 WALK_SPEED=60;
 ATTACK1_MODIFIER=2;
 ATTACK2_MODIFIER=1;
@@ -30,11 +30,10 @@ class HitBox {
         this.box.body.y=0;
     }
     activate(isAttack1, isLeft,enemy){
+        this.enemy=enemy;
         this.box.setActive(true).setVisible(true);
         this.directionFlipped=isLeft;
-        this.physics.add.collider(this.box,enemy,function(){
-            console.log('say hi!!!!!!!!!!');
-        })
+
         if(isAttack1){
             this.route=[
                     {x:0,y:-100},
@@ -52,14 +51,14 @@ class HitBox {
             this.route=[
                 {x:-120,y:0},
                 {x:-100,y:20},
-                {x:-50,y:30},
                 {x:0,y:20},
                 {x:40,y:-60},
                 {x:40,y:-50},
                 {x:40,y:-25},
                 {x:40,y:-10},
                 {x:-50,y:-10},
-                {x:-200,y:-10},
+                {x:-50,y:30},
+                {x:-50,y:30}
             ]
         }
         //this.box=this.physics.add.existing(this.box,true);
@@ -125,24 +124,28 @@ class Fighter{
                 this.speed = 2;
                 this.damage = 4;
                 this.health = 500;
+                this.maxHealth = 500;
                 this.weight = 3;
                 break;
             case "ROOK":
                 this.speed = 1;
                 this.damage = 3;
                 this.health = 200;
+                this.maxHealth = 200;
                 this.weight = 4;
                 break;
             case "BISHOP":
                 this.speed = 2;
                 this.damage = 2;
                 this.health = 100;
+                this.maxHealth = 100;
                 this.weight = 3;
                 break;
             case "KNIGHT":
                 this.speed = 3;
                 this.damage = 2;
                 this.health = 150;
+                this.maxHealth = 150;
                 this.weight = 2;
                 break;
             case "PAWN":
@@ -150,6 +153,7 @@ class Fighter{
                 this.speed = 2;
                 this.damage = 1;
                 this.health = 100;
+                this.maxHealth = 100;
                 this.weight = 1;
                 break;
         }
@@ -227,43 +231,43 @@ class Fighter{
         this.anims.create({
             key: 'idle',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_idle', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12]}),
-            frameRate: 12,
+            frameRate: 12+this.speed,
             repeat: -1,
         });
         this.anims.create({
             key: 'walk',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_walk', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}),
-            frameRate: 30,
-            repeat: 0,
+            frameRate: 18+this.speed,
+            repeat: -1,
         });
         this.anims.create({
             key: 'attack1',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_attack1', {frames:[0,1,2,3,4,5,6,7,8,9]}),
-            frameRate: 12,
+            frameRate: 10+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'attack2',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9]}),
-            frameRate: 12,
+            frameRate: 10+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'defense_start',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_defense', {frames:[0,1,2,3,4]}),
-            frameRate: 12,
+            frameRate: 12+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'defense_end',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_defense', {frames:[4,5,6,7,8]}),
-            frameRate: 12,
+            frameRate: 12+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'hit',
-            frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_hit', {frames:[0,1,2,3,3,4,4,5,5,6,7,8,9]}),
-            frameRate: 12,
+            frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_hit', {frames:[0,1,2,3,4,5,5,6,6,7,7,8,8,9,9]}),
+            frameRate: 16+this.speed,
             repeat: 0,
         });
         this.sprite.play('idle',true);
@@ -273,7 +277,7 @@ class Fighter{
     ////////////////////////////////////////////////////////////////////////////
     //-------------------------------------Internal Functions
     activateFighter(fighter,player) {
-        this.fighterStateManager = new FighterManager(this);
+        this.fighterStateManager = new FighterManager(fighter);
         fighter.active=true;
         if(player){
             fighter.team.setCurrentFighter(fighter, fighter.team);
@@ -313,17 +317,23 @@ class Fighter{
     //------------------------------------------------------------------- ACTIONS
     pushEnemy(directionFrom){
     }//TODO
-    hit(damage,directionFrom){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
-        if(this.fighterStateManager.getCurrentState(this)==='defense'){
-            this.addVelocityX(directionFrom*(BOUNCE_FORCE+(damage/10)));
+    hit(damage,directionFrom,isAttack1){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
+        if(this.fighterStateManager.getCurrentState()==='defense'){
 
-        }else if(this.fighterStateManager.getCurrentState(this)!=='hit'){
-            this.fighterStateManager.setCurrentState('hit',this);
+        }else if(this.fighterStateManager.getCurrentState()!=='hit'){
+            let totalDamage = damage*((isAttack1)?(10):(15));
+            console.log('isAttack1: '+(isAttack1))
+            console.log(this.fighterStateManager.getCurrentState())
+            gameManager.eventsCenter.emit('hit',totalDamage,this.team.isPlayer);
+            this.fighterStateManager.setCurrentState('hit');
             this.setFlip((directionFrom<0));
-            let aux= this.health;
-            this.health-=damage;
+            this.health-=totalDamage;
+            console.log('damage:'+totalDamage+' health:'+this.health)
             if(this.health<=0){this.die();}
+            // this.sprite.velocityX+=((directionFrom)*(BOUNCE_FORCE+(damage*1000)));
+            this.addVelocityX((-1*directionFrom)*(BOUNCE_FORCE+(totalDamage)));
         }
+
     }
     attack(){
     }//TODO
@@ -342,7 +352,12 @@ class Fighter{
     moveTo(x){
         this.moving=true;
         this.moveObjective=x;
-        this.fighterStateManager.setCurrentState('walk');
+        try {
+            this.fighterStateManager.setCurrentState('walk');
+        }catch(e){
+            console.log('cannot use fighterStateManager for fighter:'+this.getType_name()+'\n'+e);
+            this.sprite.play('walk');
+        }
         this.locked=true;
 
     }
@@ -367,13 +382,10 @@ class Fighter{
                     }
                 case 'idle':
                     if (keys.defense) {
-                        // this.sprite.anims.play('defense_start', false);
                         this.fighterStateManager.setCurrentState('defense');
                     } else if (keys.attack1) {
-                        // this.sprite.anims.play('attack1', true)
                         this.fighterStateManager.setCurrentState('attack1');
                     } else if (keys.attack2) {
-                        // this.sprite.anims.play('attack2', true)
                         this.fighterStateManager.setCurrentState('attack2');
                     } else {
                         if (keys.left) {
@@ -422,30 +434,30 @@ class Fighter{
     update(){
         // if(this.sprite.body.touching.down){this.slowDown();}
         this.shadow.setVisible(this.sprite.visible);
-         if(this.shadow.visible){
+         if(this.sprite.visible) {
              // this.emitter.particle=(this.team.gameScene.add.particles(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.index - 1));
-             try{
-                 // this.hitBox.update(this);
-                 this.shadow.setTexture(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.textureFrame );
+             try {
+                 this.shadow.setTexture(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.textureFrame);
                  this.shadow.x = ((this.sprite.x > 1200) ? (this.sprite.x + 7) : (this.sprite.x - 7));
                  this.shadow.y = this.sprite.y + 7;
                  this.shadow.flipX = this.sprite.flipX;
-             }catch (e) {
+             } catch (e) {
                  console.log('animation not set')
              }
-        }
-         if (this.moving){
-             let pos =this.sprite.x;
-             let val= 5*this.speed;
 
-             if(this.moveObjective>pos){
-                 this.sprite.body.x +=((val<(this.moveObjective-pos))?(val):(this.moveObjective-pos));
-             }else if(this.moveObjective<pos){
-                 this.sprite.body.x-=((val<(pos-this.moveObjective))?(val):(pos-this.moveObjective));
-             }else {
-                 this.moving=false;
-                 this.moveObjective=null;
-                 this.locked=false;
+             if (this.moving) {
+                 let pos = this.sprite.x;
+                 let val = 5 * this.speed;
+
+                 if (this.moveObjective > pos) {
+                     this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
+                 } else if (this.moveObjective < pos) {
+                     this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
+                 } else {
+                     this.moving = false;
+                     this.moveObjective = null;
+                     this.locked = false;
+                 }
              }
          }
     }
@@ -483,12 +495,12 @@ class FighterTeam {
         return this.fighters[index];
     }
     getFighter_byname(name){return this.fighters[_fighterType.indexOf('name')]}
-    disableFighters(selectedFighterIndex){
-        if(this.isPlayer){
-
-
-        }
-    }
+    // disableFighters(selectedFighterIndex){
+    //     if(this.isPlayer){
+    //
+    //
+    //     }
+    // }
     reloadFighters(){}//TODO
     setCurrentFighter(fighter,team){
         fighter.getSprite().tintFill=false;
@@ -498,12 +510,14 @@ class FighterTeam {
         this.fighters[fighter.getType_index()]=null;
         for(let i = 0; i < 5;i++){
             console.log('fighter loop: '+i)
-             if ( this.fighters[i] !== null) {
+            let fighter = this.fighters[i]
+             if ( fighter !== null) {
                  let sprite = this.fighters[i].getSprite();
-                 sprite.setTint('0xff0000');
-                 sprite.setActive(false).setVisible(false);
-                 this.fighters[i].shadow.setActive(false).setVisible(false);
-                 this.fighters[i].emitter.stop();
+                 fighter.setFlip(team.isPlayer);
+                 fighter.moveTo(((team.isPlayer)?(-10):(2410)));
+                 // sprite.setActive(false).setVisible(false);
+                 // fighter.shadow.setActive(false).setVisible(false);
+                 fighter.emitter.stop();
                  sprite.disableInteractive();
              }
         }
@@ -533,9 +547,9 @@ class FighterTeam {
             }
         }
         try{
-            this.currentFighter.update();
+            if(this.currentFighter!==null){this.currentFighter.update();}
         }catch (e) {
-            console.log('this team has not currentfighter    team.isPLayer:'+this.isPlayer)
+             console.log('this team has not currentfighter    team.isPLayer:'+this.isPlayer)
         }
 
     }
@@ -558,29 +572,40 @@ class HealthBar {
         this.fighter = null;
         this.activated = false;
         this.flip=!isPlayer;
-        this.scene = scene// .add.existing(this.bar);
+        this.scene = scene;
         this.draw()
     }
     setFighter(fighter){
         this.fighter =fighter;
+        this.activateBar();
+
     }
     activateBar(){
         if(this.fighter!==null) {
-            this.bar.sprite.setVisible(true)
+            this.bar.setVisible(true)
             this.activated = true;
             this.scene.add.existing(this.bar)
+
             this.draw();
         }
     }
-    healthFactor(){return this.fighter.health/this.value;}
-    deactivateBar(){}
-    decrease (amount){
-        this.value -= amount* this.healthFactor();
-        if (this.value < 0)
-        {
-            this.value = 0;
-        }
-        this.draw();
+    healthFactor(){return this.fighter.maxHealth/100;}
+    deactivateBar(){
+        this.fighter=null;
+        this.bar.clear();
+        this.bar.setVisible(false)
+        this.activated = false;
+        this.scene.remove(this.bar);
+    }
+    decrease(amount){
+        console.log('damage amount= '+amount)
+       if(amount>0) {
+           this.value -= amount / this.healthFactor();
+           if (this.value < 0) {
+               this.value = 0;
+           }
+           this.draw();
+       }
         return (this.value === 0);
     }
     draw (){
@@ -592,7 +617,7 @@ class HealthBar {
             //  Health
             this.bar.fillStyle(0xffffff);
             this.bar.fillRect(this.x + 4, this.y + 4, 232, 24);
-            if (this.value < 100) {
+            if (this.value < (33)) {
                 this.bar.fillStyle(0xff0000);
             } else {
                 this.bar.fillStyle(0x00ff00);
@@ -604,5 +629,8 @@ class HealthBar {
     }
     isActive() {
         return this.activated;
+    }
+    update() {
+        // this.value=(this.maxHealth/this.fighter.health)*100
     }
 }
