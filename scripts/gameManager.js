@@ -12,6 +12,7 @@ class GameManager {
         this.menuScene = new MenuScene();
         this.gameScene= new GameScene();
         this.uiscene = new UiScene();
+        this.debugText = '';
     }
     //-------------------------------------------------getters n setters
     getCurrentState() {
@@ -20,6 +21,7 @@ class GameManager {
     setCurrentState(state) {
         try {
             this.currentState = this.values.indexOf(state);
+            this.debugText='GameState: '+this.getCurrentState();
         } catch (e) {
             console.log('ERR_ state send not recognized:' + state + '\n' + e)
         }
@@ -65,10 +67,6 @@ class GameManager {
         this.gameScene.iaTeam.currentFighter.moveTo(1600);
         this.gameScene.moveCamera_to(1200,2000)
         this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.sprite, this.gameScene.iaTeam.currentFighter.sprite);
-        this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.hitBox.box, this.gameScene.iaTeam.currentFighter.sprite.body);
-        this.gameScene.physics.add.collider(this.gameScene.iaTeam.currentFighter.hitBox.box, this.gameScene.playerTeam.currentFighter.sprite.body);
-    }
-    update(){
     }
     pause(toggle){
         if(toggle) {
@@ -119,16 +117,27 @@ class FighterManager{
     }
     setCurrentState(state) {
         // try {
-            if(this.getCurrentState()==='defense'&& state!=='defense'){
-                this.fighter.sprite.play('defense_end',true);
-                this.currentState= this.state_values.indexOf('idle');
-            }else {
-                if(state==='attack1'||state==='attack2'){
-                    this.fighter.hitBox.activate((state==='attack1'),!this.fighter.isRightFaced(),this.fighter.getEnemy().sprite);
-                    this.attackCounter=0;
+            if(this.getCurrentState()!==state){
+                if (this.getCurrentState() === 'defense' && state !== 'defense') {
+                    this.fighter.sprite.play('defense_end', true);
+                    this.currentState = this.state_values.indexOf('idle');
+                } else {
+                    if (state === 'attack1' || state === 'attack2') {
+                        console.log(state)
+                        let enemy = this.fighter.getEnemy()
+                        let fighter = this.fighter;
+                        fighter.hitBox.activate((state === 'attack1'), !fighter.isRightFaced(), enemy);
+                        fighter.physics.add.collider(fighter.hitBox.box,enemy.sprite,function(box,enemySprite){
+                            fighter.hitBox.deactivate();
+                            enemy.hit(fighter.damage,((fighter.getPosition().x<enemy.getPosition().x)?(-1):(1)),(fighter.fighterStateManager.getCurrentState()==='attack1'));
+                            fighter.fighterStateManager.setCurrentState('idle');
+                            enemy.locked=true;
+                            fighter.locked=true;
+                        })
+                    }
+                    this.currentState = this.state_values.indexOf(state);
+                    this.fighter.sprite.play(this.anim_values[this.currentState], true);//FIXME
                 }
-                this.currentState = this.state_values.indexOf(state);
-                this.fighter.sprite.play(this.anim_values[this.currentState],true);//FIXME
             }
         // } catch (e) {
         //     console.log('ERR_ state send not recognized:' + state + '\n' + e)
@@ -142,6 +151,10 @@ class FighterManager{
         }else if(this.getCurrentState()==='attack1'||this.getCurrentState()==='attack2'){
             this.setCurrentState('idle');
             this.fighter.hitBox.deactivate();
+        }else if(this.getCurrentState()==='hit'){
+            this.setCurrentState('idle');
+            this.fighter.locked=false;
+            this.fighter.getEnemy().locked=false;
         }
 
     }

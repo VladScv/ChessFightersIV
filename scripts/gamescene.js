@@ -61,8 +61,8 @@ class GameScene extends Phaser.Scene {
 		this.floor.body.friction.x = 0
 		this.floor.body.setDragX(200)
 		//----------------------------------------------------------------CREATE TEAMS
-		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.iaTeam = new FighterTeam(!this.playerColor, this, this.physics, false);
+		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.gameManager.selectFighter_screen();
 	}
 
