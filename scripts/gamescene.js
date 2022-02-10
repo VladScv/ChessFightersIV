@@ -71,6 +71,9 @@ class GameScene extends Phaser.Scene {
 		},this)
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
+			this.iaTeam.currentFighter.locked=false;
+			this.playerTeam.currentFighter.fighterStateManager.setCurrentState('idle');
+			this.iaTeam.currentFighter.fighterStateManager.setCurrentState('idle');
 			this.addFightersColliders();
 			this.ia_system.assignFighters(this.iaTeam.currentFighter, this.playerTeam.currentFighter)
 			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){

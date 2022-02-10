@@ -20,7 +20,7 @@ class IA_System {
             return {
                 left: (this.playerFighter.getPosition().x < this.botFighter.getPosition().x - 160),
                 right: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x),
-                up: false,
+                up: (!this.playerFighter.isTouchingDown()),
                 attack1: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x - 160 && this.playerFighter.getPosition().x < this.botFighter.getPosition().x + 160),
                 attack2: false,
                 defense: (this.playerFighter.fighterStateManager.getCurrentState() === 'attack1')
