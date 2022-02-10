@@ -71,6 +71,7 @@ class GameScene extends Phaser.Scene {
 		},this)
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
+			this.addFightersColliders();
 			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){
 				gameManager.setCurrentState('FIGHT1');
 			}else{
@@ -115,7 +116,8 @@ class GameScene extends Phaser.Scene {
 	moveCamera_to(xPoint,speed){
 		this.mainCamera.pan(xPoint, 370, speed, 'Sine.easeInOut');
 	}
-	round1_prepare(){
+	addFightersColliders(){
+		this.collider= this.physics.add.collider(this.playerTeam.currentFighter.sprite, this.iaTeam.currentFighter.sprite);
 
 	}
 }

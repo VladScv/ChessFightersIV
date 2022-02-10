@@ -107,6 +107,10 @@ class UiScene extends Phaser.Scene {
                 gameManager.eventsCenter.emit('countdown_end');
             }
         },this);
+        gameManager.eventsCenter.on('FIGHT1_end',function (){
+            this.player_healthBar.deactivateBar();
+            this.enemy_healthBar.deactivateBar();
+        },this)
 
     }
 
@@ -162,6 +166,7 @@ class UiScene extends Phaser.Scene {
     }
     startCountdown(){
         this.countdownSprite.setVisible(true)
+        this.assignFighters(gameManager.gameScene.playerTeam.currentFighter,gameManager.gameScene.iaTeam.currentFighter)
         this.countdownSprite.play('countdown');
     }
 }

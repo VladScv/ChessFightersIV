@@ -529,7 +529,6 @@ class FighterTeam {
         console.log(team.currentFighter.getType_name());
         this.fighters[fighter.getType_index()]=null;
         for(let i = 0; i < 5;i++){
-            console.log('fighter loop: '+i)
             let fighter = this.fighters[i]
              if ( fighter !== null) {
                  let sprite = this.fighters[i].getSprite();
@@ -566,11 +565,8 @@ class FighterTeam {
                 this.fighters[i].update();
             }
         }
-        try{
             if(this.currentFighter!==null){this.currentFighter.update();}
-        }catch (e) {
-             console.log('this team has not currentfighter    team.isPLayer:'+this.isPlayer)
-        }
+
 
     }
        //TODO
@@ -596,6 +592,7 @@ class HealthBar {
         this.draw()
     }
     setFighter(fighter){
+        this.value = 100;
         this.fighter =fighter;
         this.activateBar();
 
@@ -615,7 +612,7 @@ class HealthBar {
         this.bar.clear();
         this.bar.setVisible(false)
         this.activated = false;
-        this.scene.remove(this.bar);
+        // this.scene.remove(this.bar);
     }
     decrease(amount){
         console.log('damage amount= '+amount)

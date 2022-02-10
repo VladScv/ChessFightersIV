@@ -65,8 +65,7 @@ class GameManager {
         this.uiscene.assignFighters(fighter,enemy)
         this.gameScene.playerTeam.currentFighter.moveTo(800);
         this.gameScene.iaTeam.currentFighter.moveTo(1600);
-        this.gameScene.moveCamera_to(1200,1500)
-        this.gameScene.physics.add.collider(this.gameScene.playerTeam.currentFighter.sprite, this.gameScene.iaTeam.currentFighter.sprite);
+        this.gameScene.moveCamera_to(1200,1500);
     }
     pause(toggle){
         if(toggle) {
@@ -160,8 +159,6 @@ class FighterManager{
     whenAnimationUpdates(){
         if(this.fighter.sprite.anims.currentAnim.key==='attack1'||this.fighter.sprite.anims.currentAnim.key==='attack2'){
             this.fighter.hitBox.update(this.fighter,this.fighter.sprite.anims.currentFrame.index-2);
-            console.log(this.fighter.sprite.anims.currentFrame.index-2);
-
         }
     }
 
