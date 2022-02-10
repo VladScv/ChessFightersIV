@@ -65,11 +65,32 @@ class GameScene extends Phaser.Scene {
 		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.gameManager.selectFighter_screen();
 		gameManager.eventsCenter.on('playerFighterArrived',function (fighter) {
-			gameManager.uiscene.startCountdown()
+			this.time.delayedCall(3000, function (){
+				gameManager.uiscene.startCountdown();
+			}, this);
 		},this)
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
+			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){
+				gameManager.setCurrentState('FIGHT1');
+			}else{
+				gameManager.setCurrentState('FIGHT2');
+			}
 		},this)
+		gameManager.eventsCenter.on('FIGHT1_end',function (playerWins) {
+				gameManager.setCurrentState('MATCH-OVER');
+			if(playerWins){
+				this.iaTeam.setCurrentFighter(this.iaTeam.fighters[0],this.iaTeam);
+				this.iaTeam.currentFighter.activateFighter(this.iaTeam.currentFighter,false)
+				this.iaTeam.currentFighter.moveTo(2300);
+				this.iaTeam.currentFighter.setFlip(true)
+				this.playerTeam.currentFighter.moveTo(1300)
+				this.moveCamera_to(1800,1200)
+			}else{
+
+			}
+		},this)
+
 	}
 
 //-----------------------------------------------------UPDATE FUNCTION!

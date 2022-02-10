@@ -5,7 +5,7 @@ BLACK = false;
 class GameManager {
     constructor(game) {
         this.game = game;
-        this.values=['LOADING', 'MENU', 'PAUSE', 'SELECT-FIGHTER', 'COUNTDOWN', 'FIGHT1', 'FIGHT2','MATCH-OVER', 'GAME-OVER'];
+        this.values=['LOADING', 'MENU', 'PAUSE', 'SELECT-FIGHTER', 'FIGHT1', 'FIGHT2','MATCH-OVER', 'GAME-OVER'];
         this.eventsCenter = new Phaser.Events.EventEmitter();
         this.currentState= 0;
         this.loaderScene = new LoaderScene(this);

@@ -109,6 +109,7 @@ class Fighter{
         this.shadow=null;
     //---------------------------------------------- Attributes
     {
+        this.xSpawn=xSpawn;
         this.locked=true;
         this.attackBox = null;
         this.type = type;
@@ -329,15 +330,23 @@ class Fighter{
             this.setFlip((directionFrom<0));
             this.health-=totalDamage;
             console.log('damage:'+totalDamage+' health:'+this.health)
-            if(this.health<=0){this.die();}
             // this.sprite.velocityX+=((directionFrom)*(BOUNCE_FORCE+(damage*1000)));
             this.addVelocityX((-1*directionFrom)*(BOUNCE_FORCE+(totalDamage)));
+            if(this.health<=0){this.die();}
         }
 
     }
     attack(){
     }//TODO
     die() {
+        let keyName= gameManager.getCurrentState() + '_end';
+        gameManager.eventsCenter.emit(keyName,!(this.team.isPlayer));
+        this.active=false;
+        this.sprite.body.enable=false;
+        this.sprite.setVisible(false).setActive(false);
+        this.shadow.setVisible(false).setActive(false);
+        this.emitter.stop();
+
     }//TODO
     goTo(target){
         if(this.getPosition()<target){this.addVelocityX(this.speed*WALK_SPEED);}

@@ -24,7 +24,7 @@ class IA_System {
             rand-=1;
         }//FIXME---------------------------------------------------------------------------could be a loop when only remains the queen
         this.botFighter=(team.getFighters())[rand];
-        return (team.getFighters())[1];
+        return (team.getFighters())[rand];
     }
     guessPlayerOptions(acctitude){
 
