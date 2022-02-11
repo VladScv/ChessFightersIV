@@ -16,7 +16,7 @@ _fighterType=['QUEEN','ROOK','BISHOP','KNIGHT','PAWN'];
 class HitBox {
     constructor(x,y,physics) {
         this.physics=physics;
-        this.box = physics.add.staticSprite(x,y,'hitbox');
+        this.box = null;
         this.active= false;
         this.directionFlipped=false;
         this.route=[];
@@ -26,12 +26,10 @@ class HitBox {
     deactivate() {
         // this.box.setActive(false).setVisible(false);
         this.active=false;
-        this.box.body.x=0;
-        this.box.body.y=0;
+        this.box.destroy();
     }
     activate(isAttack1, isLeft,enemy){
         this.enemy=enemy;
-        this.box.setActive(true).setVisible(true);
         this.directionFlipped=isLeft;
 
         if(isAttack1){
@@ -63,6 +61,8 @@ class HitBox {
         }
         //this.box=this.physics.add.existing(this.box,true);
         this.active=true;
+        this.box = this.physics.add.staticSprite(this.route[0].x,this.route[0].y,'hitbox');
+        this.box.setActive(true).setVisible(true);
     }//TODO
     update(fighter,counter){
         if(this.active){
@@ -107,6 +107,7 @@ class Fighter{
         this.values= _fighterState;
         this.self = this;
         this.shadow=null;
+        this.time=team.gameScene.time;
     //---------------------------------------------- Attributes
     {
         this.xSpawn=xSpawn;
@@ -229,43 +230,43 @@ class Fighter{
         this.anims.create({
             key: 'idle',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_idle', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12]}),
-            frameRate: 12+this.speed,
+            frameRate: 20+this.speed,
             repeat: -1,
         });
         this.anims.create({
             key: 'walk',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_walk', {frames:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}),
-            frameRate: 18+this.speed,
+            frameRate: 20+this.speed,
             repeat: -1,
         });
         this.anims.create({
             key: 'attack1',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_attack1', {frames:[0,1,2,3,4,5,6,7,8,9]}),
-            frameRate: 10+this.speed,
+            frameRate: 10*this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'attack2',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9]}),
-            frameRate: 10+this.speed,
+            frameRate: 10*this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'defense_start',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_defense', {frames:[0,1,2,3,4]}),
-            frameRate: 12+this.speed,
+            frameRate: 18+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'defense_end',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_defense', {frames:[4,5,6,7,8]}),
-            frameRate: 12+this.speed,
+            frameRate: 18+this.speed,
             repeat: 0,
         });
         this.anims.create({
             key: 'hit',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_hit', {frames:[0,1,2,3,4,5,5,6,6,7,7,8,8,9,9]}),
-            frameRate: 16+this.speed,
+            frameRate: 12+2*this.speed,
             repeat: 0,
         });
         this.sprite.play('idle',true);
@@ -309,29 +310,41 @@ class Fighter{
     //------------------------------------------------------------------- ACTIONS
     pushEnemy(directionFrom){
     }//TODO
-    hit(damage,directionFrom,isAttack1,fighter){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
-        if(this.fighterStateManager.getCurrentState()==='defense'){
-            this.locked=false;
-            fighter.locked=true;
-            this.team.gameScene.time.delayedCall(800, function (){
-                fighter.locked=false;
-            }, this);
-            let totalDamage = damage*((isAttack1)?(10):(15));
+    evade(){
+        let aux = (this.isRightFaced())?(1):(-1);
+        this.addVelocityX((500+this.speed*10)*aux);
+        this.time.delayedCall(50,function(flipx){
+          this.setFlip(this.isRightFaced());
+        },null,this);
 
-            this.addVelocityX(((-1*directionFrom)*(BOUNCE_FORCE+(totalDamage)))/2);
-            fighter.addVelocityX((directionFrom)*(BOUNCE_FORCE+(totalDamage)));
-        }else if(this.fighterStateManager.getCurrentState()!=='hit'){
-            this.locked=true;
-            fighter.locked=true;
-            let totalDamage = damage*((isAttack1)?(10):(15));
-            gameManager.eventsCenter.emit('hit',totalDamage,this.team.isPlayer);
-            this.fighterStateManager.setCurrentState('hit');
-            this.setFlip((directionFrom<0));
-            this.health-=totalDamage;
-            console.log('damage:'+totalDamage+' health:'+this.health)
-            // this.sprite.velocityX+=((directionFrom)*(BOUNCE_FORCE+(damage*1000)));
-            this.addVelocityX((-1*directionFrom)*(BOUNCE_FORCE+(totalDamage)));
-            if(this.health<=0){this.die();}
+    }
+    hit(damage,directionFrom,isAttack1,fighter){  //direction= (-1 = left || 1 = right ||0 = deactivate bounce) fighter relative
+        if (this.fighterStateManager.getCurrentState() !== 'evasion') {
+            if (this.fighterStateManager.getCurrentState() === 'defense') {
+                this.locked = false;
+                fighter.locked = true;
+                this.team.gameScene.time.delayedCall(800, function () {
+                    fighter.locked = false;
+                }, this);
+                let totalDamage = damage * ((isAttack1) ? (10) : (15));
+
+                this.addVelocityX(((-1 * directionFrom) * (BOUNCE_FORCE + (totalDamage))) / 2);
+                fighter.addVelocityX((directionFrom) * (BOUNCE_FORCE + (totalDamage)));
+            } else if (this.fighterStateManager.getCurrentState() !== 'hit') {
+                this.locked = true;
+                fighter.locked = true;
+                let totalDamage = damage * ((isAttack1) ? (10) : (15));
+                gameManager.eventsCenter.emit('hit', totalDamage, this.team.isPlayer);
+                this.fighterStateManager.setCurrentState('hit');
+                this.setFlip((directionFrom < 0));
+                this.health -= totalDamage;
+                console.log('damage:' + totalDamage + ' health:' + this.health)
+                // this.sprite.velocityX+=((directionFrom)*(BOUNCE_FORCE+(damage*1000)));
+                this.addVelocityX((-1 * directionFrom) * (BOUNCE_FORCE + (totalDamage)));
+                if (this.health <= 0) {
+                    this.die();
+                }
+            }
         }
 
     }
@@ -343,7 +356,9 @@ class Fighter{
         this.active=false;
         this.sprite.body.enable=false;
         this.sprite.setVisible(false).setActive(false);
+        this.sprite.destroy();
         this.shadow.setVisible(false).setActive(false);
+        this.shadow.destroy();
         this.emitter.stop();
 
     }//TODO
@@ -400,7 +415,12 @@ class Fighter{
                         this.fighterStateManager.setCurrentState('attack1');
                     } else if (keys.attack2) {
                         this.fighterStateManager.setCurrentState('attack2');
-                    } else {
+
+                    } else if(keys.evade) {
+                        console.log('evade!');
+                        this.fighterStateManager.setCurrentState('evasion');
+                        this.locked=true;
+                    }else{
                         if (keys.left) {
                             if (this.sprite.body.velocity.x > (-180 - (this.speed * 40))) {
                                 this.sprite.body.velocity.x -= 20 * this.speed;
@@ -438,6 +458,9 @@ class Fighter{
                     }
                     break;
                 case 'hit':
+                    break;
+                case 'evasion':
+
                     break;
                 default:
                     break;
@@ -480,6 +503,14 @@ class Fighter{
                          gameManager.eventsCenter.emit(fighterName+'Arrived',this.getFighter());
                      }
 
+                 }
+             }
+             if(this.fighterStateManager!==null){
+                 if (this.fighterStateManager.getCurrentState() === 'evasion') {
+                     if (Math.floor(this.getVelocityX()) === 0) {
+                         this.locked = false;
+                         this.fighterStateManager.setCurrentState('idle');
+                     }
                  }
              }
          }

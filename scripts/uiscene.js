@@ -67,6 +67,7 @@ class UiScene extends Phaser.Scene {
                     '             Z: Quick Attack \n' +
                     '             X: Heavy Attack \n' +
                     '             C: Defense\n' +
+                    '             SPACE: Evade\n\n'+
                     '             P: Pause',
                 style: {
                     font: '28px monospace',
@@ -116,10 +117,14 @@ class UiScene extends Phaser.Scene {
         },this)
         gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
             this.assignFighters(player,enemy);
-            this.time.delayedCall(3000, function (){
-                gameManager.uiscene.startCountdown();
-            }, this);
+            // this.time.delayedCall(3500, function (){
+            //     gameManager.uiscene.startCountdown();
+            // }, this);
         },this)
+        gameManager.eventsCenter.on('iaFighterArrived',function (player,enemy){
+                this.startCountdown();
+        },this)
+
     }
 
     update() {

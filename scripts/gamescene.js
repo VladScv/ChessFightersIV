@@ -49,7 +49,8 @@ class GameScene extends Phaser.Scene {
 			cursors: this.input.keyboard.createCursorKeys(),
 			attack1_key: this.input.keyboard.addKey('Z'),
 			attack2_key: this.input.keyboard.addKey('X'),
-			defense_key: this.input.keyboard.addKey('C')
+			defense_key: this.input.keyboard.addKey('C'),
+			evade_key: this.input.keyboard.addKey('SPACE')
 		}
 
 
@@ -74,6 +75,9 @@ class GameScene extends Phaser.Scene {
 			this.iaTeam.currentFighter.locked=false;
 			this.playerTeam.currentFighter.fighterStateManager.setCurrentState('idle');
 			this.iaTeam.currentFighter.fighterStateManager.setCurrentState('idle');
+			this.playerTeam.currentFighter.setFlip(false);
+			this.iaTeam.currentFighter.setFlip(true);
+
 			this.addFightersColliders();
 			this.ia_system.assignFighters(this.iaTeam.currentFighter, this.playerTeam.currentFighter)
 			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){
@@ -100,7 +104,8 @@ class GameScene extends Phaser.Scene {
 			let winner = ((playerWins)?(this.playerTeam.currentFighter):(this.iaTeam.currentFighter));
 			console.log('winner is '+winner.getType_name())
 			if(winner.getType_name()==='QUEEN'){
-				winner.sprite.body.x=winner.xSpawn;
+				winner.setFlip(!winner.team.isPlayer)
+				winner.sprite.body.x=winner.xSpawn-50;
 				//TODO Move queen back
 			}else {
 				//eliminate player
@@ -136,7 +141,8 @@ class GameScene extends Phaser.Scene {
 				up: this.inputKeys.cursors.up.isDown,
 				attack1: this.inputKeys.attack1_key.isDown,
 				attack2: this.inputKeys.attack2_key.isDown,
-				defense:this.inputKeys.defense_key.isDown
+				defense:this.inputKeys.defense_key.isDown,
+				evade:((this.playerTeam.currentFighter.fighterStateManager.getCurrentState()!=='evasion')&&(this.inputKeys.evade_key._justDown))
 			});
 			this.iaTeam.currentFighter.processInput(this.ia_system.iaSystem_update());
 		}
@@ -151,7 +157,7 @@ class GameScene extends Phaser.Scene {
 		this.mainCamera.pan(xPoint, 370, speed, 'Sine.easeInOut');
 	}
 	addFightersColliders(){
-		this.collider= this.physics.add.collider(this.playerTeam.currentFighter.sprite, this.iaTeam.currentFighter.sprite);
+		// this.collider= this.physics.add.collider(this.playerTeam.currentFighter.sprite, this.iaTeam.currentFighter.sprite);
 
 	}
 }
