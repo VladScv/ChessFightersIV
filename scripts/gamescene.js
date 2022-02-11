@@ -64,11 +64,11 @@ class GameScene extends Phaser.Scene {
 		this.iaTeam = new FighterTeam(!this.playerColor, this, this.physics, false);
 		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.gameManager.selectFighter_screen();
-		gameManager.eventsCenter.on('playerFighterArrived',function (fighter) {
-			this.time.delayedCall(3000, function (){
-				gameManager.uiscene.startCountdown();
-			}, this);
-		},this)
+		// gameManager.eventsCenter.on('playerFighterArrived',function (fighter) {
+		// 	this.time.delayedCall(3000, function (){
+		// 		gameManager.uiscene.startCountdown();
+		// 	}, this);
+		// },this)
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
 			this.iaTeam.currentFighter.locked=false;
@@ -84,26 +84,47 @@ class GameScene extends Phaser.Scene {
 		},this)
 		gameManager.eventsCenter.on('FIGHT1_end',function (playerWins) {
 				gameManager.setCurrentState('MATCH-OVER');
-			if(playerWins){
-				this.iaTeam.setCurrentFighter(this.iaTeam.fighters[0],this.iaTeam);
-				this.iaTeam.currentFighter.activateFighter(this.iaTeam.currentFighter,false)
-				this.iaTeam.currentFighter.moveTo(2300);
-				this.iaTeam.currentFighter.setFlip(true)
-				this.playerTeam.currentFighter.moveTo(1300)
-				this.moveCamera_to(1800,1200)
-			}else{
-				//TODO enemy attacks player queen
-			}
+				let looserTeam= (playerWins?(this.iaTeam):(this.playerTeam));
+				let winnerTeam= (playerWins?(this.playerTeam):(this.iaTeam));
+				let spawnPos = (playerWins?([2300,1300,1800]):([100,1100,600]));
+				looserTeam.fighters[0].activateFighter(looserTeam.fighters[0]);
+				// looserTeam.currentFighter.moveTo(spawnPos[0]);
+				looserTeam.currentFighter.setFlip(playerWins);
+				winnerTeam.currentFighter.moveTo(spawnPos[1]);
+				this.ia_system.assignFighters(this.iaTeam.currentFighter, this.playerTeam.currentFighter);
+				gameManager.uiscene.assignFighters(this.playerTeam.currentFighter,this.iaTeam.currentFighter)
+				this.moveCamera_to(spawnPos[2],1200);
 		},this);
 		gameManager.eventsCenter.on('FIGHT2_end',function (playerWins) {
 			gameManager.setCurrentState('MATCH-OVER');
-			if(playerWins){
-				//TODO MATCH-OVER / GAME-OVER
-			}else{
-				//TODO MATCH-OVER / GAME-OVER
+			let winner = ((playerWins)?(this.playerTeam.currentFighter):(this.iaTeam.currentFighter));
+			console.log('winner is '+winner.getType_name())
+			if(winner.getType_name()==='QUEEN'){
+				winner.sprite.body.x=winner.xSpawn;
+				//TODO Move queen back
+			}else {
+				//eliminate player
+				winner.die();
 			}
+				gameManager.eventsCenter.emit('startNewMatch');
+				this.newMatch();
 		},this)
-
+		gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
+			this.activateFighters(player,enemy);
+		},this)
+	}
+	newMatch() {
+		this.moveCamera_to(600,1200)
+		this.gameManager.selectFighter_screen();
+		this.playerTeam.spawnFighters();
+		gameManager.setCurrentState('SELECT-FIGHTER');
+	}
+	activateFighters(player, enemy) {
+		player.activateFighter(player);
+		enemy.activateFighter(enemy);
+		this.playerTeam.currentFighter.moveTo(800);
+		this.iaTeam.currentFighter.moveTo(1600);
+		this.moveCamera_to(1200,1500);
 	}
 
 //-----------------------------------------------------UPDATE FUNCTION!

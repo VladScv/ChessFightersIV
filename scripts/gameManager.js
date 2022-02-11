@@ -59,14 +59,6 @@ class GameManager {
         this.setCurrentState('SELECT-FIGHTER');//TODO REUSABLE FOR EVERY SELECTION
         this.uiscene.selectFighter_screen(true);
     }
-    fighterSelected(fighter){
-        let enemy= this.gameScene.ia_system.selectNext_iaFighter(this.gameScene.iaTeam);
-        enemy.activateFighter(enemy,false);
-        this.uiscene.assignFighters(fighter,enemy)
-        this.gameScene.playerTeam.currentFighter.moveTo(800);
-        this.gameScene.iaTeam.currentFighter.moveTo(1600);
-        this.gameScene.moveCamera_to(1200,1500);
-    }
     pause(toggle){
         if(toggle) {
             this.gameScene.pause();

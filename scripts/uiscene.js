@@ -110,8 +110,16 @@ class UiScene extends Phaser.Scene {
         gameManager.eventsCenter.on('FIGHT1_end',function (){
             this.player_healthBar.deactivateBar();
             this.enemy_healthBar.deactivateBar();
+            this.time.delayedCall(3000, function (){
+                gameManager.uiscene.startCountdown();
+            }, this);
         },this)
-
+        gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
+            this.assignFighters(player,enemy);
+            this.time.delayedCall(3000, function (){
+                gameManager.uiscene.startCountdown();
+            }, this);
+        },this)
     }
 
     update() {
@@ -153,6 +161,8 @@ class UiScene extends Phaser.Scene {
         //TODO group all memembers for fightUi and selectUI
         this.player_healthBar.activated=!activate;
         this.enemy_healthBar.activated=!activate;
+        this.player_healthBar.update();
+        this.enemy_healthBar.update();
         this.selectFighter_txt[0].setVisible(activate);
         this.selectFighter_txt[1].setVisible(activate);
        //TODO set visible all the elements
@@ -165,7 +175,6 @@ class UiScene extends Phaser.Scene {
     }
     startCountdown(){
         this.countdownSprite.setVisible(true)
-        this.assignFighters(gameManager.gameScene.playerTeam.currentFighter,gameManager.gameScene.iaTeam.currentFighter)
         this.countdownSprite.play('countdown');
     }
 }

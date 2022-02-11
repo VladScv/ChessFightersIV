@@ -16,15 +16,24 @@ class IA_System {
 
     }
     iaSystem_update(){
-        if(this.playerFighter!==null) {
+        if(this.playerFighter!==null&&( gameManager.getCurrentState()==='FIGHT1'|| gameManager.getCurrentState()==='FIGHT2')) {
+            let aux;
+            try{
+                aux = (this.playerFighter.fighterStateManager.getCurrentState() === 'attack1');
+            }catch (e){
+                aux = false;
+            }
             return {
                 left: (this.playerFighter.getPosition().x < this.botFighter.getPosition().x - 160),
                 right: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x),
                 up: (!this.playerFighter.isTouchingDown()),
                 attack1: (this.playerFighter.getPosition().x > this.botFighter.getPosition().x - 160 && this.playerFighter.getPosition().x < this.botFighter.getPosition().x + 160),
                 attack2: false,
-                defense: (this.playerFighter.fighterStateManager.getCurrentState() === 'attack1')
-            }
+                defense: aux
+            };
+        }else{
+            console.log('ERR_IA_SYSTEM_INPUT')
+            return null;
         }
     }
     assignFighters(bot,player){

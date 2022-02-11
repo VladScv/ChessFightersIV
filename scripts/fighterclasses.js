@@ -205,11 +205,11 @@ class Fighter{
         this.hitBox = new HitBox(0,0,physics);
     }
     //-----------------------------------set interaction
-    if(this.team.isPlayer){
+    if(this.team.isPlayer&&type!=='QUEEN'){
         this.sprite.setInteractive();
         this.sprite.input.hitArea.setTo(180, 30, 180, 350);
         this.sprite.on('pointerdown', function (a,b){
-            activateThisFighter(this.fighter);
+            gameManager.eventsCenter.emit('fighterSelected',this.fighter,gameManager.gameScene.ia_system.selectNext_iaFighter(gameManager.gameScene.iaTeam));
         });
         this.sprite.on('pointerover', function () {
             try {this.anims.play('attack1', true);
@@ -219,9 +219,6 @@ class Fighter{
             try {this.anims.play('idle', true);
             } catch (e) { }
         });
-        function activateThisFighter(fighter) {
-            fighter.activateFighter(fighter,true)
-        }
     }
     //-----------------------------------set animations
     {
@@ -277,16 +274,10 @@ class Fighter{
     }
     ////////////////////////////////////////////////////////////////////////////
     //-------------------------------------Internal Functions
-    activateFighter(fighter,player) {
+    activateFighter(fighter) {
         this.fighterStateManager = new FighterManager(fighter);
-        fighter.active=true;
-        if(player){
-            fighter.team.setCurrentFighter(fighter, fighter.team);
-            gameManager.fighterSelected(fighter)
-        }else{
-            fighter.team.setCurrentFighter(fighter,fighter.team);
-        }
-
+        this.active=true;
+        this.team.setCurrentFighter(fighter,fighter.team);
     }
     getPosition(){return {x:this.sprite.x,y:this.sprite.y}}
     setVelocityX(n){this.sprite.body.velocity.x = n}
@@ -367,15 +358,19 @@ class Fighter{
         return this.sprite.body.touching.down;
     }
     moveTo(x){
-        this.moving=true;
-        this.moveObjective=x;
-        try {
-            this.fighterStateManager.setCurrentState('walk');
-        }catch(e){
-            console.log('cannot use fighterStateManager for fighter:'+this.getType_name()+'\n'+e);
-            this.sprite.play('walk');
+
+        if(this.getPosition().x==x){}else{
+            this.moving = true;
+            this.setFlip(x < this.getPosition().x)
+            this.moveObjective = x;
+            try {
+                this.fighterStateManager.setCurrentState('walk');
+            } catch (e) {
+                console.log('cannot use fighterStateManager for fighter:' + this.getType_name() + '\n' + e);
+                this.sprite.play('walk');
+            }
+            this.locked = true;
         }
-        this.locked=true;
 
 
     }
@@ -392,7 +387,7 @@ class Fighter{
         }
     }
     processInput(keys) {
-       if(!this.locked) {
+       if((!this.locked)&&(keys!==null)) {
             switch (this.fighterStateManager.getCurrentState()) {
                 case 'walk':
                     if (!keys.left && !keys.right&&!this.moving) {
@@ -518,6 +513,29 @@ class FighterTeam {
             this.fighters.push(fighter);
         }
     }
+    spawnFighters(){
+        for(let i = 1; i<5;i++){
+            let fighter= this.fighters[i];
+            if(fighter!==null){
+                fighter.moveTo(fighter.xSpawn);
+                fighter.sprite.setInteractive();
+                fighter.setFlip(!fighter.team.isPlayer);
+            }
+        }
+    }
+    hideFighters(isPlayer){
+        let spawn= (isPlayer?(-150):(2550))
+        for(let i = 1; i<5;i++){
+            let fighter= this.fighters[i];
+            if(fighter!==null){
+                    fighter.moveTo(spawn);
+                    let sprite = fighter.getSprite();
+                    fighter.setFlip(isPlayer);
+                    fighter.emitter.stop();
+                    sprite.disableInteractive();
+            }
+        }
+    }
     getFighters(){return this.fighters}
     getFighter(index){
         return this.fighters[index];
@@ -531,23 +549,11 @@ class FighterTeam {
     // }
     reloadFighters(){}//TODO
     setCurrentFighter(fighter,team){
-        fighter.getSprite().tintFill=false;
         fighter.emitter.start();
         this.currentFighter= fighter;
         console.log(team.currentFighter.getType_name());
-        this.fighters[fighter.getType_index()]=null;
-        for(let i = 0; i < 5;i++){
-            let fighter = this.fighters[i]
-             if ( fighter !== null) {
-                 let sprite = this.fighters[i].getSprite();
-                 fighter.setFlip(team.isPlayer);
-                 fighter.moveTo(((team.isPlayer)?(-10):(2410)));
-                 // sprite.setActive(false).setVisible(false);
-                 // fighter.shadow.setActive(false).setVisible(false);
-                 fighter.emitter.stop();
-                 sprite.disableInteractive();
-             }
-        }
+        if(fighter.getType_name()!=='QUEEN'){this.fighters[fighter.getType_index()]=null;}
+        this.hideFighters(this.isPlayer);
         this.currentFighter.getSprite().disableInteractive();
 
         //delete gameScene.playerTeam.fighters[gameScene.playerTeam.fighters.getIndex(fighter)];
@@ -600,7 +606,7 @@ class HealthBar {
         this.draw()
     }
     setFighter(fighter){
-        this.value = 100;
+        this.value = (fighter.health/fighter.maxHealth)*100;
         this.fighter =fighter;
         this.activateBar();
 
@@ -656,6 +662,7 @@ class HealthBar {
         return this.activated;
     }
     update() {
+        if(this.activated){this.activateBar()}else{this.deactivateBar()}
         // this.value=(this.maxHealth/this.fighter.health)*100
     }
 }
