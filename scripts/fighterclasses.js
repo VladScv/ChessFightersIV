@@ -313,7 +313,9 @@ class Fighter{
     evade(){
         let aux = (this.isRightFaced())?(1):(-1);
         this.addVelocityX((500+this.speed*10)*aux);
-        this.time.delayedCall(50,function(flipx){
+        this.getEnemy().sprite.setDepth(1);
+        this.sprite.setDepth(0.9);
+        this.time.delayedCall(100,function(flipx){
           this.setFlip(this.isRightFaced());
         },null,this);
 
@@ -509,6 +511,10 @@ class Fighter{
                  if (this.fighterStateManager.getCurrentState() === 'evasion') {
                      if (Math.floor(this.getVelocityX()) === 0) {
                          this.locked = false;
+                         if(this.team.isPlayer){
+                             this.getEnemy().sprite.setDepth(0.9);
+                             this.sprite.setDepth(1);
+                         }
                          this.fighterStateManager.setCurrentState('idle');
                      }
                  }

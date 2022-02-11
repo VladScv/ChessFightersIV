@@ -138,11 +138,11 @@ class GameScene extends Phaser.Scene {
 			this.playerTeam.currentFighter.processInput({
 				left: this.inputKeys.cursors.left.isDown,
 				right: this.inputKeys.cursors.right.isDown,
-				up: this.inputKeys.cursors.up.isDown,
-				attack1: this.inputKeys.attack1_key.isDown,
-				attack2: this.inputKeys.attack2_key.isDown,
+				up: Phaser.Input.Keyboard.JustDown(this.inputKeys.cursors.up),
+				attack1: Phaser.Input.Keyboard.JustDown(this.inputKeys.attack1_key),
+				attack2: Phaser.Input.Keyboard.JustDown(this.inputKeys.attack2_key),
 				defense:this.inputKeys.defense_key.isDown,
-				evade:((this.playerTeam.currentFighter.fighterStateManager.getCurrentState()!=='evasion')&&(this.inputKeys.evade_key._justDown))
+				evade:((this.playerTeam.currentFighter.fighterStateManager.getCurrentState()!=='evasion')&&(Phaser.Input.Keyboard.JustDown(this.inputKeys.evade_key)))
 			});
 			this.iaTeam.currentFighter.processInput(this.ia_system.iaSystem_update());
 		}
