@@ -23,28 +23,8 @@ class UiScene extends Phaser.Scene {
     }
 
     create() {
-
         this.keyPause= this.input.keyboard.addKey('P');
-        this.keyPause.on('down',function(){gameManager.uiscene.pauseGame();});
-        this.pauseText=[this.make.text({
-            x: this.camWidth / 2,
-            y: this.camHeight / 2,
-            text: 'PAUSE',
-            style: {
-                font: '64px monospace',
-                fill: '#000000'
-            }
-        }).setOrigin(0.5,0.5),this.make.text({
-            x: this.camWidth / 2,
-            y: (this.camHeight / 2)+40,
-            text: 'Click to continue',
-            style: {
-                font: '28px monospace',
-                fill: '#000000'
-            }
-        }).setOrigin(0.5,0.5)];
-        this.pauseText[0].setVisible(false)
-        this.pauseText[1].setVisible(false)
+
         this.selectFighter_txt = [this.make.text({
             x: this.camWidth / 4,
             y: 50,
@@ -124,19 +104,35 @@ class UiScene extends Phaser.Scene {
         gameManager.eventsCenter.on('iaFighterArrived',function (player,enemy){
                 this.startCountdown();
         },this)
-
+        this.pause_screen= this.add.image(0,0,'pause').setOrigin(0,0);
+        this.pause_screen.setVisible(false);
+        this.pauseText=[this.make.text({
+            x: this.camWidth / 2,
+            y: this.camHeight / 2,
+            text: 'PAUSE',
+            style: {
+                font: '64px monospace',
+                fill: '#000000'
+            }
+        }).setOrigin(0.5,0.5),this.make.text({
+            x: this.camWidth / 2,
+            y: (this.camHeight / 2)+40,
+            text: 'Press P to continue',
+            style: {
+                font: '28px monospace',
+                fill: '#000000'
+            }
+        }).setOrigin(0.5,0.5)];
+        this.pauseText[0].setVisible(false)
+        this.pauseText[1].setVisible(false)
     }
 
     update() {
-       if(this.barActivate){
-           // this.player_healthBar.decrease(this.player_healthBar.fighter.health);
-           // this.enemy_healthBar.decrease(this.enemy_healthBar.fighter.health);
-           // //TODO update health bars?
-       }
-       if(this.keyPause.isDown){
-           this.pauseGame();
-       }
-       this.debugTxt.text=gameManager.debugText;
+        if(Phaser.Input.Keyboard.JustDown(this.keyPause)&&
+            (gameManager.getCurrentState()==='FIGHT1'||
+                gameManager.getCurrentState()==='FIGHT2'||
+                gameManager.getCurrentState()==='PAUSE')){this.pauseGame()};
+        this.debugTxt.text=gameManager.debugText;
        try {
           this.debugTxt.text+= '|| PLAYER: ' + gameManager.gameScene.playerTeam.currentFighter.type + '_state:' + gameManager.gameScene.playerTeam.currentFighter.fighterStateManager.getCurrentState()+
               '|| ENEMY: ' + gameManager.gameScene.iaTeam.currentFighter.type + '_state:' + gameManager.gameScene.iaTeam.currentFighter.fighterStateManager.getCurrentState();
@@ -144,19 +140,17 @@ class UiScene extends Phaser.Scene {
 
        }
     }
-    updateHealth(damage,isPlayer){
-
-
-    }
     pauseGame(){
-        this.gameManager.pause(true);
-        this.pauseText[0].setVisible(true);
-        this.pauseText[1].setVisible(true);
-        this.input.once(Phaser.Input.Events.POINTER_DOWN, function () {
-            this.gameManager.pause(false);
-            this.pauseText[0].setVisible(false);
-            this.pauseText[1].setVisible(false);
-        },this)
+        let aux = (!gameManager.gameScene.scene.isPaused('game'));
+        this.pauseText[0].setVisible(aux);
+        this.pauseText[1].setVisible(aux);
+        if((aux&&(gameManager.getCurrentState()==='FIGHT2'||gameManager.getCurrentState()==='FIGHT1'))||
+            (!aux&&(gameManager.oldState==='FIGHT2'||gameManager.oldState==='FIGHT1'))){
+            this.player_healthBar.bar.setVisible(!aux);
+            this.enemy_healthBar.bar.setVisible(!aux);
+        }
+        this.gameManager.pause(aux);
+        this.pause_screen.setVisible(aux);
         // let toggle= (this.gameManager.getCurrentState()!=='PAUSE');
         // console.log(toggle)
         // this.gameManager.pause(toggle);

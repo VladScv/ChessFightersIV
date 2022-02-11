@@ -37,6 +37,7 @@ class LoaderScene extends Phaser.Scene {
 		this.load.image('blackTeam_btn_on','assets/selectTeam_black_on.png');
 		this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
 		this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
+		this.load.image('pause','assets/pause.png');
 		this.load.spritesheet('countdown','assets/countdown.png',{ frameWidth: 50, frameHeight: 50 });
 		//-----------------------------------------------------------------------loading screen
 		//LOAD SECUENTIALIMAGES
