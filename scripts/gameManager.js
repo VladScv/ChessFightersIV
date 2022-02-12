@@ -28,7 +28,7 @@ class GameManager {
     }
     setGame(game){this.game = game;}
     getScene(sceneName){
-        switch (sceneName){
+        switch (sceneName) {
             case ('loader'):
                 return this.loaderScene;
             case ('menu'):
@@ -37,7 +37,8 @@ class GameManager {
                 return this.gameScene;
             case ('uiscene'):
                 return this.uiscene;
-
+            default:
+                return this.getFocus_scene();
         }
     }
     getFocus_scene(){return this.game.scene;}
@@ -49,7 +50,6 @@ class GameManager {
         this.playerColor = color;
         this.getFocus_scene().run('uiscene',this);
         this.getFocus_scene().run('game',this);//run works as "resume" or "start" depending on current scene state
-
         this.getFocus_scene().sleep('menu');
     }
     selectFighter_screen(){
@@ -68,17 +68,8 @@ class GameManager {
             this.gameScene.scene.resume('game');
         }
     }
-    gameOver(playerWins) {
-    }
-    matchOver(playerWins, fightingQueen) {
-        // do match over stuff(clean UI, show a message, destroy the looser...)
-        //PREPARE NEXT FIGHTQUEEN or SELECTFIGHTER or GAMEOVER
-        // set gameState to nextStep
-        if(fightingQueen){
-
-        }else{
-            //set to the queen countdown
-        }
+    gameOver() {
+       location.reload();
     }
 }
 class FighterManager{
@@ -100,7 +91,6 @@ class FighterManager{
         return this.state_values[this.currentState];
     }
     setCurrentState(state) {
-        // try {
             if(this.getCurrentState()!==state){
                 if (this.getCurrentState() === 'defense' && state !== 'defense') {
                     this.fighter.sprite.play('defense_end', true);
@@ -113,11 +103,6 @@ class FighterManager{
                         let enemy = this.fighter.getEnemy()
                         let fighter = this.fighter;
                         fighter.hitBox.activate((state === 'attack1'), !fighter.isRightFaced(), enemy);
-                        // fighter.physics.add.collider(fighter.hitBox.box,enemy.sprite,function(box,enemySprite){
-                        //     fighter.hitBox.deactivate();
-                        //     enemy.hit(fighter.damage,((fighter.getPosition().x<enemy.getPosition().x)?(-1):(1)),(fighter.fighterStateManager.getCurrentState()==='attack1'),fighter);
-                        //     fighter.fighterStateManager.setCurrentState('idle');
-                        // })
                         fighter.physics.add.overlap(fighter.hitBox.box,enemy.sprite,function(box,enemySprite){
                             if(enemy.fighterStateManager.getCurrentState()!=='evasion'){
                                 fighter.hitBox.deactivate();
@@ -132,10 +117,6 @@ class FighterManager{
                     this.fighter.sprite.play(this.anim_values[this.currentState], true);//FIXME
                 }
             }
-        // } catch (e) {
-        //     console.log('ERR_ state send not recognized:' + state + '\n' + e)
-        // }
-
     }
     whenAnimationEnds(){
         if(this.fighter.sprite.anims.currentAnim.key==='defense_end'){

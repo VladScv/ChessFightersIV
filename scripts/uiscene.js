@@ -11,7 +11,7 @@ class UiScene extends Phaser.Scene {
         this.pauseText='';
         this.barActivate = false;
     }
-
+//---------------------------------------------------------PHASER METHODS
     init(data){
         this.gameManager = data;
     }
@@ -97,12 +97,18 @@ class UiScene extends Phaser.Scene {
         },this)
         gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
             this.assignFighters(player,enemy);
-            // this.time.delayedCall(3500, function (){
-            //     gameManager.uiscene.startCountdown();
-            // }, this);
         },this)
         gameManager.eventsCenter.on('iaFighterArrived',function (player,enemy){
                 this.startCountdown();
+        },this)
+        gameManager.eventsCenter.on('gameOver',function (playerWins,isBlack){
+             let winnerColor= (isBlack?('black'):('white'))
+            console.log(winnerColor)
+            this.add.image(0,0,'gameOver_'+winnerColor).setOrigin(0,0);
+            this.input.once(Phaser.Input.Events.POINTER_DOWN, function () {
+                gameManager.gameOver(playerWins);
+            },this);
+
         },this)
         this.pause_screen= this.add.image(0,0,'pause').setOrigin(0,0);
         this.pause_screen.setVisible(false);
@@ -132,14 +138,17 @@ class UiScene extends Phaser.Scene {
             (gameManager.getCurrentState()==='FIGHT1'||
                 gameManager.getCurrentState()==='FIGHT2'||
                 gameManager.getCurrentState()==='PAUSE')){this.pauseGame()};
+        //ONLY FOR DEBUG PURPOSES
         this.debugTxt.text=gameManager.debugText;
        try {
           this.debugTxt.text+= '|| PLAYER: ' + gameManager.gameScene.playerTeam.currentFighter.type + '_state:' + gameManager.gameScene.playerTeam.currentFighter.fighterStateManager.getCurrentState()+
               '|| ENEMY: ' + gameManager.gameScene.iaTeam.currentFighter.type + '_state:' + gameManager.gameScene.iaTeam.currentFighter.fighterStateManager.getCurrentState();
        }catch (e){
-
        }
     }
+
+
+//---------------------------------------------------------ADDED METHODS
     pauseGame(){
         let aux = (!gameManager.gameScene.scene.isPaused('game'));
         this.pauseText[0].setVisible(aux);
@@ -151,20 +160,14 @@ class UiScene extends Phaser.Scene {
         }
         this.gameManager.pause(aux);
         this.pause_screen.setVisible(aux);
-        // let toggle= (this.gameManager.getCurrentState()!=='PAUSE');
-        // console.log(toggle)
-        // this.gameManager.pause(toggle);
-        // this.pauseText.setVisible(toggle);
     }
     selectFighter_screen(activate){
-        //TODO group all memembers for fightUi and selectUI
         this.player_healthBar.activated=!activate;
         this.enemy_healthBar.activated=!activate;
         this.player_healthBar.update();
         this.enemy_healthBar.update();
         this.selectFighter_txt[0].setVisible(activate);
         this.selectFighter_txt[1].setVisible(activate);
-       //TODO set visible all the elements
     }
     assignFighters(player,enemy){
         this.player_healthBar.setFighter(player);
@@ -177,8 +180,77 @@ class UiScene extends Phaser.Scene {
         this.countdownSprite.play('countdown');
     }
 }
-//-----------------------------------------------------HealthBar class
-// from: https://labs.phaser.io/edit.html?src=src/game%20objects/graphics/health%20bars%20demo.js&v=3.55.2
 
-
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+class HealthBar {
+    constructor (scene, x, y,isPlayer) {
+        this.bar = new Phaser.GameObjects.Graphics(scene);
+        this.x = x;
+        this.y = y;
+        this.value = 100;
+        this.p = 233/100;
+        this.fighter = null;
+        this.activated = false;
+        this.flip=!isPlayer;
+        this.scene = scene;
+        this.draw()
+    }
+    setFighter(fighter){
+        this.value = (fighter.health/fighter.maxHealth)*100;
+        this.fighter =fighter;
+        this.activateBar();
+    }
+    activateBar(){
+        if(this.fighter!==null) {
+            this.bar.setVisible(true)
+            this.activated = true;
+            this.scene.add.existing(this.bar)
+            this.draw();
+        }
+    }
+    healthFactor(){return this.fighter.maxHealth/100;}
+    deactivateBar(){
+        this.fighter=null;
+        this.bar.clear();
+        this.bar.setVisible(false)
+        this.activated = false;
+    }
+    decrease(amount){
+        console.log('damage amount= '+amount)
+        if(amount>0) {
+            this.value -= amount / this.healthFactor();
+            if (this.value < 0) {
+                this.value = 0;
+            }
+            this.draw();
+        }
+        return (this.value === 0);
+    }
+    draw (){
+        this.bar.clear();
+        if(this.isActive()) {
+            //  BG
+            this.bar.fillStyle(0x000000);
+            this.bar.fillRect(this.x, this.y, 240,32 );
+            //  Health
+            this.bar.fillStyle(0xffffff);
+            this.bar.fillRect(this.x + 4, this.y + 4, 232, 24);
+            if (this.value < (33)) {
+                this.bar.fillStyle(0xff0000);
+            } else {
+                this.bar.fillStyle(0x00ff00);
+            }
+            let d = Math.floor(this.p * this.value);
+            this.bar.fillRect(this.x + 4, this.y + 4, d, 24);
+        }else{
+        }
+    }
+    isActive() {
+        return this.activated;
+    }
+    update() {
+        if(this.activated){this.activateBar()}else{this.deactivateBar()}
+    }
+}
 

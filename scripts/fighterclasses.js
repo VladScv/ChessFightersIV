@@ -112,15 +112,11 @@ class Fighter{
     {
         this.xSpawn=xSpawn;
         this.locked=true;
-        this.attackBox = null;
         this.type = type;
         this.team = team;
         this.color = color;
         this.active = false;
-        this.dead = false;
-        //let keyName= type + '_';
         this.fighterStateManager = null;
-
         switch (type) {
             case "QUEEN":
                 this.speed = 2;
@@ -191,11 +187,10 @@ class Fighter{
         this.shadow.tint = 0x000000;
         this.shadow.alpha = 0.6;
         this.sprite = physics.add.sprite(xSpawn, 100,this.type+'_white_idle' ).setOrigin(0.5,0.5);
-     // this.sprite = physics.add.sprite(type + '_' + color_name + '_idle');
         this.sprite.setBounce(0.15);
         this.sprite.body.setGravityY(500);
         this.sprite.flipX=!team.isPlayer;
-        physics.add.collider(this.sprite, gameManager.getScene('game').floor);
+        this.physics.add.collider(this.sprite, gameManager.getScene('game').floor);
         this.sprite.body.setGravityY(200*this.weight)
         this.sprite.setSize(100,160+20*this.weight,true)
         this.sprite.setOffset(200,180-20*this.weight)
@@ -212,14 +207,8 @@ class Fighter{
         this.sprite.on('pointerdown', function (a,b){
             gameManager.eventsCenter.emit('fighterSelected',this.fighter,gameManager.gameScene.ia_system.selectNext_iaFighter(gameManager.gameScene.iaTeam));
         });
-        this.sprite.on('pointerover', function () {
-            try {this.anims.play('attack1', true);
-            }catch (e) { }
-        });
-        this.sprite.on('pointerout', function () {
-            try {this.anims.play('idle', true);
-            } catch (e) { }
-        });
+        this.sprite.on('pointerover', function () {this.anims.play('attack1', true);});
+        this.sprite.on('pointerout', function () {this.anims.play('idle', true);});
     }
     //-----------------------------------set animations
     {
@@ -248,7 +237,7 @@ class Fighter{
         this.anims.create({
             key: 'attack2',
             frames: game.anims.generateFrameNumbers(keyName +'_'+color_name+ '_attack2', {frames:[0,1,2,3,4,5,6,7,8,9]}),
-            frameRate: 10*this.speed,
+            frameRate: 10+5*this.speed,
             repeat: 0,
         });
         this.anims.create({
@@ -270,23 +259,14 @@ class Fighter{
             repeat: 0,
         });
         this.sprite.play('idle',true);
-        // this.anims.play('idle', false);
     }
     }
     ////////////////////////////////////////////////////////////////////////////
-    //-------------------------------------Internal Functions
-    activateFighter(fighter) {
-        this.fighterStateManager = new FighterManager(fighter);
-        this.active=true;
-        this.team.setCurrentFighter(fighter,fighter.team);
-    }
+    // //------------------------------------------------------------------- GETTERS n SETTERS
     getPosition(){return {x:this.sprite.x,y:this.sprite.y}}
     setVelocityX(n){this.sprite.body.velocity.x = n}
     addVelocityX(v){this.sprite.body.velocity.x+=v}
     getVelocityX(){return this.sprite.body.velocity.x}
-    setAnimation(key){
-        //TODO
-    }
     getFighter() {return self }
     isLocked(){return this.locked}
     setLock(val){this.locked=val;}
@@ -306,16 +286,25 @@ class Fighter{
         return this.sprite;
     }
     getShadow(){return this.shadow;}
+    getEnemy(){return (this.team.isPlayer)?(this.team.gameScene.iaTeam.currentFighter):(this.team.gameScene.playerTeam.currentFighter);
+    }
+    isTouchingDown(){
+        return this.sprite.body.touching.down;
+    }
+    //-------------------------------------------------------------------Internal Functions
+    activateFighter(fighter) {
+        this.fighterStateManager = new FighterManager(fighter);
+        this.active=true;
+        this.team.setCurrentFighter(fighter,fighter.team);
+    }
     ////////////////////////////////////////////////////////////////////////////
-    //------------------------------------------------------------------- ACTIONS
-    pushEnemy(directionFrom){
-    }//TODO
+    // //------------------------------------------------------------------- ACTIONS
     evade(){
         let aux = (this.isRightFaced())?(1):(-1);
         this.addVelocityX((500+this.speed*10)*aux);
         this.getEnemy().sprite.setDepth(1);
         this.sprite.setDepth(0.9);
-        this.time.delayedCall(100,function(flipx){
+        this.time.delayedCall(100,function(){
           this.setFlip(this.isRightFaced());
         },null,this);
 
@@ -329,7 +318,6 @@ class Fighter{
                     fighter.locked = false;
                 }, this);
                 let totalDamage = damage * ((isAttack1) ? (10) : (15));
-
                 this.addVelocityX(((-1 * directionFrom) * (BOUNCE_FORCE + (totalDamage))) / 2);
                 fighter.addVelocityX((directionFrom) * (BOUNCE_FORCE + (totalDamage)));
             } else if (this.fighterStateManager.getCurrentState() !== 'hit') {
@@ -341,7 +329,6 @@ class Fighter{
                 this.setFlip((directionFrom < 0));
                 this.health -= totalDamage;
                 console.log('damage:' + totalDamage + ' health:' + this.health)
-                // this.sprite.velocityX+=((directionFrom)*(BOUNCE_FORCE+(damage*1000)));
                 this.addVelocityX((-1 * directionFrom) * (BOUNCE_FORCE + (totalDamage)));
                 if (this.health <= 0) {
                     this.die();
@@ -350,32 +337,23 @@ class Fighter{
         }
 
     }
-    attack(){
-    }//TODO
     die() {
-        let keyName= gameManager.getCurrentState() + '_end';
-        gameManager.eventsCenter.emit(keyName,!(this.team.isPlayer));
-        this.active=false;
-        this.sprite.body.enable=false;
-        this.sprite.setVisible(false).setActive(false);
-        this.sprite.destroy();
-        this.shadow.setVisible(false).setActive(false);
-        this.shadow.destroy();
-        this.emitter.stop();
-
-    }//TODO
-    goTo(target){
-        if(this.getPosition()<target){this.addVelocityX(this.speed*WALK_SPEED);}
-        else if(this.getPosition()>target){this.addVelocityX(this.speed*WALK_SPEED);}
-        else{
-            //TODO
+        if(this.getType_name()!=='QUEEN') {
+            let keyName = gameManager.getCurrentState() + '_end';
+            gameManager.eventsCenter.emit(keyName, !(this.team.isPlayer));
+            this.active = false;
+            this.sprite.body.enable = false;
+            this.sprite.setVisible(false).setActive(false);
+            this.sprite.destroy();
+            this.shadow.setVisible(false).setActive(false);
+            this.shadow.destroy();
+            this.emitter.stop();
+        }else {
+            gameManager.eventsCenter.emit('gameOver',!(this.team.isPlayer),this.team.color);
         }
-    }
-    isTouchingDown(){
-        return this.sprite.body.touching.down;
+
     }
     moveTo(x){
-
         if(this.getPosition().x==x){}else{
             this.moving = true;
             this.setFlip(x < this.getPosition().x)
@@ -388,19 +366,67 @@ class Fighter{
             }
             this.locked = true;
         }
-
-
     }
-    getEnemy(){return (this.team.isPlayer)?(this.team.gameScene.iaTeam.currentFighter):(this.team.gameScene.playerTeam.currentFighter);
-    }
-    ////////////////////////////////////////////////////////////////////////////
-    //------------------------------------------------------------------- UPDATE
     slowDown(){
         let auX =this.getVelocityX();
         if(auX>0){
             this.addVelocityX(-((auX<FRICTION_VALUE)?auX:FRICTION_VALUE));
         }else if(auX<0){
             this.addVelocityX((((-auX)<FRICTION_VALUE)?auX:FRICTION_VALUE));
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////
+    //------------------------------------------------------------------- UPDATE
+    update(){
+        // if(this.sprite.body.touching.down){this.slowDown();}
+        this.shadow.setVisible(this.sprite.visible);
+        if(this.sprite.visible) {
+            // this.emitter.particle=(this.team.gameScene.add.particles(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.index - 1));
+            try {
+                this.shadow.setTexture(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.textureFrame);
+                this.shadow.x = ((this.sprite.x > 1200) ? (this.sprite.x + 7) : (this.sprite.x - 7));
+                this.shadow.y = this.sprite.y + 7;
+                this.shadow.flipX = this.sprite.flipX;
+            } catch (e) {
+                console.log('animation not set')
+            }
+
+            if (this.moving) {
+                let pos = this.sprite.x;
+                let val = 2 * this.speed;
+
+                if (this.moveObjective > pos) {
+                    this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
+                    this.anims.play('walk',true);
+                } else if (this.moveObjective < pos) {
+                    this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
+                    this.anims.play('walk',true);
+                } else {
+                    this.anims.play('idle',true);
+                    this.moving = false;
+                    this.moveObjective = null;
+
+                    // this.locked=false;
+                    if(this.team.currentFighter===this) {
+                        let fighterName=((this.team.isPlayer)?('playerFighter'):('iaFighter'));
+                        console.log(fighterName);
+                        gameManager.eventsCenter.emit(fighterName+'Arrived',this.getFighter());
+                    }
+
+                }
+            }
+            if(this.fighterStateManager!==null){
+                if (this.fighterStateManager.getCurrentState() === 'evasion') {
+                    if (Math.floor(this.getVelocityX()) === 0) {
+                        this.locked = false;
+                        if(this.team.isPlayer){
+                            this.getEnemy().sprite.setDepth(0.9);
+                            this.sprite.setDepth(1);
+                        }
+                        this.fighterStateManager.setCurrentState('idle');
+                    }
+                }
+            }
         }
     }
     processInput(keys) {
@@ -469,58 +495,6 @@ class Fighter{
             }
         }
     }
-    update(){
-        // if(this.sprite.body.touching.down){this.slowDown();}
-        this.shadow.setVisible(this.sprite.visible);
-         if(this.sprite.visible) {
-             // this.emitter.particle=(this.team.gameScene.add.particles(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.index - 1));
-             try {
-                 this.shadow.setTexture(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.textureFrame);
-                 this.shadow.x = ((this.sprite.x > 1200) ? (this.sprite.x + 7) : (this.sprite.x - 7));
-                 this.shadow.y = this.sprite.y + 7;
-                 this.shadow.flipX = this.sprite.flipX;
-             } catch (e) {
-                 console.log('animation not set')
-             }
-
-             if (this.moving) {
-                 let pos = this.sprite.x;
-                 let val = 2 * this.speed;
-
-                 if (this.moveObjective > pos) {
-                     this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
-                     this.anims.play('walk',true);
-                 } else if (this.moveObjective < pos) {
-                     this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
-                     this.anims.play('walk',true);
-                 } else {
-                     this.anims.play('idle',true);
-                     this.moving = false;
-                     this.moveObjective = null;
-
-                     // this.locked=false;
-                     if(this.team.currentFighter===this) {
-                         let fighterName=((this.team.isPlayer)?('playerFighter'):('iaFighter'));
-                         console.log(fighterName);
-                         gameManager.eventsCenter.emit(fighterName+'Arrived',this.getFighter());
-                     }
-
-                 }
-             }
-             if(this.fighterStateManager!==null){
-                 if (this.fighterStateManager.getCurrentState() === 'evasion') {
-                     if (Math.floor(this.getVelocityX()) === 0) {
-                         this.locked = false;
-                         if(this.team.isPlayer){
-                             this.getEnemy().sprite.setDepth(0.9);
-                             this.sprite.setDepth(1);
-                         }
-                         this.fighterStateManager.setCurrentState('idle');
-                     }
-                 }
-             }
-         }
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////\
@@ -578,13 +552,6 @@ class FighterTeam {
         return this.fighters[index];
     }
     getFighter_byname(name){return this.fighters[_fighterType.indexOf('name')]}
-    // disableFighters(selectedFighterIndex){
-    //     if(this.isPlayer){
-    //
-    //
-    //     }
-    // }
-    reloadFighters(){}//TODO
     setCurrentFighter(fighter,team){
         fighter.emitter.start();
         this.currentFighter= fighter;
@@ -620,86 +587,6 @@ class FighterTeam {
 
 
     }
-       //TODO
-
-
 }
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-class HealthBar {
-
-    constructor (scene, x, y,isPlayer) {
-        this.bar = new Phaser.GameObjects.Graphics(scene);
-        this.x = x;
-        this.y = y;
-        this.value = 100;
-        this.p = 233/100;
-        this.fighter = null;
-        this.activated = false;
-        this.flip=!isPlayer;
-        this.scene = scene;
-        this.draw()
-    }
-    setFighter(fighter){
-        this.value = (fighter.health/fighter.maxHealth)*100;
-        this.fighter =fighter;
-        this.activateBar();
-
-    }
-    activateBar(){
-        if(this.fighter!==null) {
-            this.bar.setVisible(true)
-            this.activated = true;
-            this.scene.add.existing(this.bar)
-
-            this.draw();
-        }
-    }
-    healthFactor(){return this.fighter.maxHealth/100;}
-    deactivateBar(){
-        this.fighter=null;
-        this.bar.clear();
-        this.bar.setVisible(false)
-        this.activated = false;
-        // this.scene.remove(this.bar);
-    }
-    decrease(amount){
-        console.log('damage amount= '+amount)
-       if(amount>0) {
-           this.value -= amount / this.healthFactor();
-           if (this.value < 0) {
-               this.value = 0;
-           }
-           this.draw();
-       }
-        return (this.value === 0);
-    }
-    draw (){
-        this.bar.clear();
-        if(this.isActive()) {
-            //  BG
-            this.bar.fillStyle(0x000000);
-            this.bar.fillRect(this.x, this.y, 240,32 );
-            //  Health
-            this.bar.fillStyle(0xffffff);
-            this.bar.fillRect(this.x + 4, this.y + 4, 232, 24);
-            if (this.value < (33)) {
-                this.bar.fillStyle(0xff0000);
-            } else {
-                this.bar.fillStyle(0x00ff00);
-            }
-            let d = Math.floor(this.p * this.value);
-            this.bar.fillRect(this.x + 4, this.y + 4, d, 24);
-        }else{
-        }
-    }
-    isActive() {
-        return this.activated;
-    }
-    update() {
-        if(this.activated){this.activateBar()}else{this.deactivateBar()}
-        // this.value=(this.maxHealth/this.fighter.health)*100
-    }
-}

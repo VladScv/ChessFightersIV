@@ -18,17 +18,10 @@ class LoaderScene extends Phaser.Scene {
 
 //-------------------------------------------------------------------------- LOAD FIRST ASSETS
 	preload() {
-		//first load, loads all assets
-		// console.log(Fighter.fighterStateManager.values[0]);
-
-		// this.gameManager = new GameManager();
 		this.load.image('sky', 'assets/sky.png');
 		this.load.image('space', 'assets/space3.png');
 		this.load.image('logo', 'phaser3-logo.png');
 		this.load.image('redp', 'assets/redp.png');
-	//TODO for loop with white/black and fighterType values
-
-
 		this.load.image('bg','assets/black_bg.png');
 		this.load.image('hitbox','assets/hitbox.png');
 		this.load.image('logicFloor','assets/logicFloor.png');
@@ -38,6 +31,8 @@ class LoaderScene extends Phaser.Scene {
 		this.load.image('whiteTeam_btn','assets/selectTeam_white.png');
 		this.load.image('whiteTeam_btn_on','assets/selectTeam_white_on.png');
 		this.load.image('pause','assets/pause.png');
+		this.load.image('gameOver_white','assets/gameover_white.png');
+		this.load.image('gameOver_black','assets/gameover_black.png');
 		this.load.spritesheet('countdown','assets/countdown.png',{ frameWidth: 50, frameHeight: 50 });
 		//-----------------------------------------------------------------------loading screen
 		//LOAD SECUENTIALIMAGES
@@ -50,7 +45,6 @@ class LoaderScene extends Phaser.Scene {
 			this.load.spritesheet(name+'_white_defense','assets/'+name+'_white_defense.png',{ frameWidth: 512, frameHeight: 383 });
 			this.load.spritesheet(name+'_white_hit','assets/'+name+'_white_hit.png',{ frameWidth: 512, frameHeight: 383 });
 		}
-
 		//------------------------------------------Create loading bar boxes
 		let progressBox = this.add.graphics();
 		progressBox.fillStyle(0x222222, 0.8);
@@ -95,11 +89,9 @@ class LoaderScene extends Phaser.Scene {
 			progressBar.fillRect(450, 330, 300 * value, 30);
 			percentText.setText(''+Math.floor(value * 100) + '%');
 		});
-
 		this.load.on('fileprogress', function (file) {
 			fileText.setText('loading file:'+ file.src);
 		});
-
 		this.load.on('complete', function () {
 			//SHOW SPLASH SCREEN
 			progressBar.destroy();
@@ -107,14 +99,10 @@ class LoaderScene extends Phaser.Scene {
 			loadingText.destroy();
 			percentText.destroy();
 			fileText.destroy();
-
 		});
 	}
-
-
 	//-------------------------------------------------------------------------- SPLASH SCREEN
 	create() {
-
 		let loadImage = this.add.image(0, 0, 'space').setOrigin(0); //Background
 		let particles = this.add.particles('redp'); //particles stuff
 		let emitter = particles.createEmitter({
@@ -141,9 +129,7 @@ class LoaderScene extends Phaser.Scene {
 			logo.destroy();
 			clickText.destroy();
 			this.scene.start('menu',this.gameManager);
-			// this.children.removeAll();// not necessary, it cleans screen when changing SCENE
-			//coz we use "start" function, otherwise, "launch" will start a new scene WITH current scene
-		}, this); // <-- "this" means scope = game
+		}, this);
 	}
 }
 

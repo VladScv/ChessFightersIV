@@ -29,8 +29,10 @@ class GameScene extends Phaser.Scene {
 		this.inputKeys = [];
 
 	}
+	//-----------------------------------------------------------------------PHASER METHODS
 	init(data){
 		this.gameManager=data;
+		this.playerColor=data.playerColor;
 	}
 	preload() {
 		this.ia_system = new IA_System(this);
@@ -39,11 +41,8 @@ class GameScene extends Phaser.Scene {
 		this.camHeight = this.mainCamera.height;
 		this.background = this.add.image(0, this.camHeight / 2, 'bg').setOrigin(0, 0.5);
 		this.background.flipX = this.gameManager.playerColor;
-		this.mainPhysics = this.physics;
 	}
-
 	create() {
-//--------------------------------------------------------------Create Screen text
 		//----------------------------------------------------------------REGISTER CONTROLS KEYS
 		this.inputKeys = {
 			cursors: this.input.keyboard.createCursorKeys(),
@@ -52,8 +51,6 @@ class GameScene extends Phaser.Scene {
 			defense_key: this.input.keyboard.addKey('C'),
 			evade_key: this.input.keyboard.addKey('SPACE')
 		}
-
-
 		//---------------------------------------------------------------create the floor object
 		this.floor = this.physics.add.image(1200, 640, 'logicFloor');
 		this.floor.setImmovable(true)
@@ -61,15 +58,19 @@ class GameScene extends Phaser.Scene {
 		this.floor.setVisible(false)
 		this.floor.body.friction.x = 0
 		this.floor.body.setDragX(200)
+
 		//----------------------------------------------------------------CREATE TEAMS
 		this.iaTeam = new FighterTeam(!this.playerColor, this, this.physics, false);
 		this.playerTeam = new FighterTeam(this.playerColor, this, this.physics, true,);
 		this.gameManager.selectFighter_screen();
-		// gameManager.eventsCenter.on('playerFighterArrived',function (fighter) {
-		// 	this.time.delayedCall(3000, function (){
-		// 		gameManager.uiscene.startCountdown();
-		// 	}, this);
-		// },this)
+
+		//----------------------------------------------------------------CREATE EVENT LISTENERS
+
+		//---------------------------------FIGHTER SELECTED
+		gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
+			this.activateFighters(player,enemy);
+		},this);
+		//---------------------------------COUNTDOWN_END
 		gameManager.eventsCenter.on('countdown_end',function (fighter) {
 			this.playerTeam.currentFighter.locked=false;
 			this.iaTeam.currentFighter.locked=false;
@@ -77,8 +78,6 @@ class GameScene extends Phaser.Scene {
 			this.iaTeam.currentFighter.fighterStateManager.setCurrentState('idle');
 			this.playerTeam.currentFighter.setFlip(false);
 			this.iaTeam.currentFighter.setFlip(true);
-
-			this.addFightersColliders();
 			this.ia_system.assignFighters(this.iaTeam.currentFighter, this.playerTeam.currentFighter)
 			if(gameManager.getCurrentState()==='SELECT-FIGHTER'){
 				gameManager.setCurrentState('FIGHT1');
@@ -86,6 +85,7 @@ class GameScene extends Phaser.Scene {
 				gameManager.setCurrentState('FIGHT2');
 			}
 		},this)
+		//---------------------------------FIGHT1_END
 		gameManager.eventsCenter.on('FIGHT1_end',function (playerWins) {
 				gameManager.setCurrentState('MATCH-OVER');
 				let looserTeam= (playerWins?(this.iaTeam):(this.playerTeam));
@@ -99,6 +99,7 @@ class GameScene extends Phaser.Scene {
 				gameManager.uiscene.assignFighters(this.playerTeam.currentFighter,this.iaTeam.currentFighter)
 				this.moveCamera_to(spawnPos[2],1200);
 		},this);
+		//---------------------------------FIGHT2_END
 		gameManager.eventsCenter.on('FIGHT2_end',function (playerWins) {
 			gameManager.setCurrentState('MATCH-OVER');
 			let winner = ((playerWins)?(this.playerTeam.currentFighter):(this.iaTeam.currentFighter));
@@ -106,33 +107,12 @@ class GameScene extends Phaser.Scene {
 			if(winner.getType_name()==='QUEEN'){
 				winner.setFlip(!winner.team.isPlayer)
 				winner.sprite.body.x=winner.xSpawn-50;
-				//TODO Move queen back
-			}else {
-				//eliminate player
-				winner.die();
-			}
+				//TODO Move queen back PROPERLY
+			}else {winner.die();}//eliminate player
 				gameManager.eventsCenter.emit('startNewMatch');
 				this.newMatch();
 		},this)
-		gameManager.eventsCenter.on('fighterSelected',function (player,enemy){
-			this.activateFighters(player,enemy);
-		},this)
 	}
-	newMatch() {
-		this.moveCamera_to(600,1200)
-		this.gameManager.selectFighter_screen();
-		this.playerTeam.spawnFighters();
-		gameManager.setCurrentState('SELECT-FIGHTER');
-	}
-	activateFighters(player, enemy) {
-		player.activateFighter(player);
-		enemy.activateFighter(enemy);
-		this.playerTeam.currentFighter.moveTo(800);
-		this.iaTeam.currentFighter.moveTo(1600);
-		this.moveCamera_to(1200,1500);
-	}
-
-//-----------------------------------------------------UPDATE FUNCTION!
 	update() {
 		if(this.playerTeam.currentFighter!==null){
 			this.playerTeam.currentFighter.processInput({
@@ -149,18 +129,25 @@ class GameScene extends Phaser.Scene {
 		this.playerTeam.update();
 		this.iaTeam.update();
 	}
-//------------------------------------------------------------------INPUT MANAGEMENT
+	//-----------------------------------------------------------------------GAME METHODS
 	pause(){
 		this.scene.pause('game');
+	}
+	activateFighters(player, enemy) {
+		player.activateFighter(player);
+		enemy.activateFighter(enemy);
+		this.playerTeam.currentFighter.moveTo(800);
+		this.iaTeam.currentFighter.moveTo(1600);
+		this.moveCamera_to(1200,1500);
+	}
+	newMatch() {
+		this.moveCamera_to(600,1200)
+		this.gameManager.selectFighter_screen();
+		this.playerTeam.spawnFighters();
+		gameManager.setCurrentState('SELECT-FIGHTER');
 	}
 	moveCamera_to(xPoint,speed){
 		this.mainCamera.pan(xPoint, 370, speed, 'Sine.easeInOut');
 	}
-	addFightersColliders(){
-		// this.collider= this.physics.add.collider(this.playerTeam.currentFighter.sprite, this.iaTeam.currentFighter.sprite);
-
-	}
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

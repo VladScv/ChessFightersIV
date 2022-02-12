@@ -20,8 +20,6 @@ class MenuScene extends Phaser.Scene {
 		this.gameManager=data;
 	}
 	preload() {
-		//-------------------------------------------------------------load more stuff
-
 	}
 	create() {
 		//--------------------------------------------------------------construct menu

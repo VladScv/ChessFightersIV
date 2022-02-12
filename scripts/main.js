@@ -46,12 +46,9 @@ CAM_SELECTION=600;
 CAM_FIGHT=1200;
 CAM_ENEMYQUEEN=1800;
 _gameState = ['MENU', 'PAUSE', 'SELECTFIGHTER', 'COUNTDOWN', 'FIGHT', 'FIGHTQUEEN','MATCHOVER', 'GAMEOVER'];
-
-
-/*
- *  PHASER GAME CONFIGURATION
-*/
+// -----GAME MANAGER: Global Object to store all game data
 const gameManager = new GameManager();
+//----------------------------------------------- PHASER GAME CONFIGURATION
 const config = {
 	type: Phaser.AUTO,
 	scale: {
