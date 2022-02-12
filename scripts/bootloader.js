@@ -20,7 +20,7 @@ class LoaderScene extends Phaser.Scene {
 	preload() {
 		this.load.image('sky', 'assets/sky.png');
 		this.load.image('space', 'assets/space3.png');
-		this.load.image('logo', 'phaser3-logo.png');
+		this.load.image('logo', 'assets/phaser3-logo.png');
 		this.load.image('redp', 'assets/redp.png');
 		this.load.image('bg','assets/black_bg.png');
 		this.load.image('hitbox','assets/hitbox.png');

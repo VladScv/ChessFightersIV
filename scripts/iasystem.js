@@ -40,12 +40,18 @@ class IA_System {
         this.playerFighter=player;
     }
     selectNext_iaFighter(team){
-        // this.guessPlayerOptions(this.botAcctitude);
-        let rand = Phaser.Math.Between(1,4);
-        console.log('random:'+rand)
-        while (team.getFighters()[rand]===null){
-            rand-=Phaser.Math.Between(1,4);
-        }//FIXME---------------------------------------------------------------------------could be a loop when only remains the queen
+        let rand;
+        if(team.remainingFighters>0) {
+            rand = Phaser.Math.Between(1, 4);
+            while (team.getFighters()[rand] === null) {
+
+                console.log('fighter:' + team.getFighters()[rand])
+                rand = Phaser.Math.Between(1, 4);
+            }
+        }else{
+            rand =0;
+        }
+        console.log('random:' + rand)
         return (team.getFighters())[rand];
     }
     // guessPlayerOptions(acctitude){

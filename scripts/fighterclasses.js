@@ -111,6 +111,7 @@ class Fighter{
     //---------------------------------------------- Attributes
     {
         this.xSpawn=xSpawn;
+        this.moveDirection=team.isPlayer?1:-1;
         this.locked=true;
         this.type = type;
         this.team = team;
@@ -292,6 +293,15 @@ class Fighter{
         return this.sprite.body.touching.down;
     }
     //-------------------------------------------------------------------Internal Functions
+    queenInteraction(){
+        this.sprite.setInteractive();
+        this.sprite.input.hitArea.setTo(180, 30, 180, 350);
+        this.sprite.on('pointerdown', function (a,b){
+            gameManager.eventsCenter.emit('fighterSelected',this.fighter,gameManager.gameScene.ia_system.selectNext_iaFighter(gameManager.gameScene.iaTeam));
+        });
+        this.sprite.on('pointerover', function () {this.anims.play('attack1', true);});
+        this.sprite.on('pointerout', function () {this.anims.play('idle', true);});
+    }
     activateFighter(fighter) {
         this.fighterStateManager = new FighterManager(fighter);
         this.active=true;
@@ -338,6 +348,7 @@ class Fighter{
 
     }
     die() {
+        this.team.remainingFighters--;
         if(this.getType_name()!=='QUEEN') {
             let keyName = gameManager.getCurrentState() + '_end';
             gameManager.eventsCenter.emit(keyName, !(this.team.isPlayer));
@@ -349,12 +360,16 @@ class Fighter{
             this.shadow.destroy();
             this.emitter.stop();
         }else {
-            gameManager.eventsCenter.emit('gameOver',!(this.team.isPlayer),this.team.color);
+            gameManager.eventsCenter.emit('gameOver',!(this.team.isPlayer),!this.team.color);
         }
 
     }
     moveTo(x){
-        if(this.getPosition().x==x){}else{
+        if(this.getPosition().x==x){
+            this.moving = false;
+
+        }else{
+            this.moveDirection=(this.getPosition().x>x)?(-1):(1);
             this.moving = true;
             this.setFlip(x < this.getPosition().x)
             this.moveObjective = x;
@@ -377,10 +392,10 @@ class Fighter{
     }
     ////////////////////////////////////////////////////////////////////////////
     //------------------------------------------------------------------- UPDATE
-    update(){
+    update() {
         // if(this.sprite.body.touching.down){this.slowDown();}
         this.shadow.setVisible(this.sprite.visible);
-        if(this.sprite.visible) {
+        if (this.sprite.visible) {
             // this.emitter.particle=(this.team.gameScene.add.particles(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.index - 1));
             try {
                 this.shadow.setTexture(this.sprite.anims.currentFrame.textureKey, this.sprite.anims.currentFrame.textureFrame);
@@ -394,32 +409,40 @@ class Fighter{
             if (this.moving) {
                 let pos = this.sprite.x;
                 let val = 2 * this.speed;
-
-                if (this.moveObjective > pos) {
-                    this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
-                    this.anims.play('walk',true);
-                } else if (this.moveObjective < pos) {
-                    this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
-                    this.anims.play('walk',true);
-                } else {
-                    this.anims.play('idle',true);
-                    this.moving = false;
-                    this.moveObjective = null;
-
-                    // this.locked=false;
-                    if(this.team.currentFighter===this) {
-                        let fighterName=((this.team.isPlayer)?('playerFighter'):('iaFighter'));
-                        console.log(fighterName);
-                        gameManager.eventsCenter.emit(fighterName+'Arrived',this.getFighter());
+                if (this.moveDirection > 0) {
+                    if (this.moveObjective > pos) {
+                        this.sprite.body.x += ((val < (this.moveObjective - pos)) ? (val) : (this.moveObjective - pos));
+                        this.anims.play('walk', true);
+                    } else {
+                        this.anims.play('idle', true);
+                        this.moving = false;
+                        this.moveObjective = null;
+                        if (this.team.currentFighter === this) {
+                            let fighterName = ((this.team.isPlayer) ? ('playerFighter') : ('iaFighter'));
+                            console.log(fighterName);
+                            gameManager.eventsCenter.emit(fighterName + 'Arrived', this.getFighter());
+                        }
                     }
-
+                } else {
+                    if (this.moveObjective < pos) {
+                        this.sprite.body.x -= ((val < (pos - this.moveObjective)) ? (val) : (pos - this.moveObjective));
+                        this.anims.play('walk', true);
+                    } else {
+                        this.anims.play('idle', true);
+                        this.moving = false;
+                        this.moveObjective = null;
+                        if (this.team.currentFighter === this) {
+                            let fighterName = ((this.team.isPlayer) ? ('playerFighter') : ('iaFighter'));
+                            console.log(fighterName);
+                            gameManager.eventsCenter.emit(fighterName + 'Arrived', this.getFighter());
+                        }
+                    }
                 }
-            }
-            if(this.fighterStateManager!==null){
+            }else if(this.fighterStateManager !== null) {
                 if (this.fighterStateManager.getCurrentState() === 'evasion') {
                     if (Math.floor(this.getVelocityX()) === 0) {
                         this.locked = false;
-                        if(this.team.isPlayer){
+                        if (this.team.isPlayer) {
                             this.getEnemy().sprite.setDepth(0.9);
                             this.sprite.setDepth(1);
                         }
@@ -429,6 +452,8 @@ class Fighter{
             }
         }
     }
+
+
     processInput(keys) {
        if((!this.locked)&&(keys!==null)) {
             switch (this.fighterStateManager.getCurrentState()) {
@@ -516,22 +541,39 @@ class FighterTeam {
         this.gameScene = gameScene;
         this.fighters =[];
         this.currentFighter=null;
+        this.remainingFighters=4;
         //---------create fighters
         for (let i = 0; i < _fighterType.length; i++) {
             //--------- this fighter values
-            let xSpawn = (isPlayer ? (100 + i * 150) : (2400 - 100 * i));
+            let xSpawn = (isPlayer ? (100 + i * 150) : (2300 - 150 * i));
             let fighter = new Fighter(_fighterType[i], this, this.teamColor, physics, xSpawn);
             this.fighters.push(fighter);
         }
+        if(isPlayer){
+            gameManager.eventsCenter.on('playerFighterArrived',function (player,enemy){
+                gameManager.gameScene.playerTeam.currentFighter.setFlip(false);
+            },this)
+        }else{
+            gameManager.eventsCenter.on('iaFighterArrived',function (player,enemy){
+                gameManager.gameScene.iaTeam.currentFighter.setFlip(true);
+            },this)
+        }
     }
     spawnFighters(){
-        for(let i = 1; i<5;i++){
-            let fighter= this.fighters[i];
-            if(fighter!==null){
-                fighter.moveTo(fighter.xSpawn);
-                fighter.sprite.setInteractive();
-                fighter.setFlip(!fighter.team.isPlayer);
+        console.log('SpawnFighters() remaining:'+this.remainingFighters.toString())
+        if(this.remainingFighters>0) {
+            for (let i = 1; i < 5; i++) {
+                let fighter = this.fighters[i];
+                if (fighter !== null) {
+                    fighter.moveTo(fighter.xSpawn);
+                    fighter.sprite.setInteractive();
+                    fighter.setFlip(!fighter.team.isPlayer);
+                }
             }
+        }else{
+            let fighter= this.fighters[0];
+            fighter.queenInteraction();
+            fighter.setFlip(!fighter.team.isPlayer);
         }
     }
     hideFighters(isPlayer){
@@ -559,23 +601,6 @@ class FighterTeam {
         if(fighter.getType_name()!=='QUEEN'){this.fighters[fighter.getType_index()]=null;}
         this.hideFighters(this.isPlayer);
         this.currentFighter.getSprite().disableInteractive();
-
-        //delete gameScene.playerTeam.fighters[gameScene.playerTeam.fighters.getIndex(fighter)];
-        // try{ gameScene.playerTeam.fighters.forEach(function(fighter){fighter.sprite.visible=false;})}catch(e){};
-        //
-        // delete buttons[fighter.getType_index()];
-        // console.log()
-        // gameScene.currentFighter.scrollFactorX=0;
-        // let index=Phaser.Math.Between(1,4);
-        // gameScene.iaFighter= gameScene.iaTeam.fighters[index];
-        // delete gameScene.iaTeam.fighters[index];
-        // gameScene.fixCamPoint=SPAWN_PLAYER;
-        // gameScene.movingCamera = true;
-        // gameScene.currentFighter.sprite.anims.play('walk',true);
-        // gameScene.iaFighter.sprite.anims.play('walk',true);
-        // gameScene.gameState='FIGHT';
-        // gameScene.selectFighter_txt.forEach(function(f){f.visible=false;});
-
     }
     update(){
         for(let i = 0; i < 5;i++){
@@ -583,9 +608,7 @@ class FighterTeam {
                 this.fighters[i].update();
             }
         }
-            if(this.currentFighter!==null){this.currentFighter.update();}
-
-
+        if(this.currentFighter!==null){this.currentFighter.update();}
     }
 }
 ////////////////////////////////////////////////////////////////////////////
